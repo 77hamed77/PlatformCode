@@ -1,0 +1,96 @@
+<!-- templates/home.html -->
+{% extends 'base.html' %}
+
+{% block title %}الصفحة الرئيسية{% endblock %}
+
+{% block content %}
+
+<!-- ================================== -->
+<!--          HERO SECTION              -->
+<!-- ================================== -->
+<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+    <div class="relative">
+        <!-- Decorative background shapes -->
+        <div class="absolute inset-0">
+            <div class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-90"></div>
+            <div class="absolute inset-y-0 right-0 w-1/2 bg-indigo-700 opacity-20 transform skew-x-12 rtl:skew-x-[-12deg]"></div>
+        </div>
+
+        <div class="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8 text-center">
+            <!-- Main Title -->
+            <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
+                <span class="block">أطلق العنان لقدراتك البرمجية</span>
+                <span class="block text-indigo-200">مع منصة كود</span>
+            </h1>
+            
+            <!-- Subtitle/Value Proposition -->
+            <p class="mt-6 max-w-lg mx-auto text-xl text-indigo-100 sm:max-w-3xl">
+                منصتك التعليمية المتكاملة لدراسة الهندسة المعلوماتية، من المسارات التعليمية المنظمة إلى ساحة التحديات البرمجية.
+            </p>
+            
+            <!-- Call to Action Buttons -->
+            <div class="mt-10 max-w-sm mx-auto sm:max-w-none sm:flex sm:justify-center space-y-4 sm:space-y-0 sm:space-x-4 rtl:sm:space-x-reverse">
+                <a href="{% url 'path_list' %}" class="flex items-center justify-center w-full sm:w-auto px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-lg text-indigo-700 bg-white hover:bg-indigo-50 transform hover:scale-105 transition-transform duration-300">
+                    ابدأ رحلتك التعليمية
+                </a>
+                <a href="{% url 'problem_list' %}" class="flex items-center justify-center w-full sm:w-auto px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-lg text-white bg-indigo-500 hover:bg-indigo-600 transform hover:scale-105 transition-transform duration-300">
+                    خُض التحدي الآن
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================================== -->
+<!--        FEATURES SECTION            -->
+<!-- ================================== -->
+<div class="py-12 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <h2 class="text-base font-semibold text-indigo-600 dark:text-indigo-400 tracking-wider uppercase">لماذا منصة كود؟</h2>
+            <p class="mt-2 text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight sm:text-4xl">
+                كل ما تحتاجه للنجاح في مكان واحد
+            </p>
+        </div>
+
+        <!-- Feature Cards -->
+        <div class="mt-10 grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+            
+            <!-- Feature 1: Learning Paths -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 transform hover:-translate-y-2 transition-transform duration-300">
+                <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                </div>
+                <h3 class="mt-5 text-lg font-medium text-gray-900 dark:text-white">مسارات تعليمية منظمة</h3>
+                <p class="mt-2 text-base text-gray-500 dark:text-gray-400">
+                    خارطة طريق واضحة تأخذك من الصفر إلى الاحتراف في تخصصات متعددة مثل تطوير الويب والذكاء الاصطناعي.
+                </p>
+            </div>
+
+            <!-- Feature 2: Problem Solving Arena -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 transform hover:-translate-y-2 transition-transform duration-300">
+                <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                </div>
+                <h3 class="mt-5 text-lg font-medium text-gray-900 dark:text-white">ساحة حل المسائل</h3>
+                <p class="mt-2 text-base text-gray-500 dark:text-gray-400">
+                    اصقل مهاراتك البرمجية عبر حل مئات المسائل التفاعلية مع نظام تقييم فوري لإجاباتك.
+                </p>
+            </div>
+
+            <!-- Feature 3: Gamification -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 transform hover:-translate-y-2 transition-transform duration-300">
+                <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                </div>
+                <h3 class="mt-5 text-lg font-medium text-gray-900 dark:text-white">التحفيز والمنافسة</h3>
+                <p class="mt-2 text-base text-gray-500 dark:text-gray-400">
+                    اكتسب النقاط مع كل إنجاز، واحصل على الشارات، وتنافس مع زملائك للوصول إلى قمة لوحة الصدارة.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

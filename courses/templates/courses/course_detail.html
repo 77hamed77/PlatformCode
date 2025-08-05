@@ -1,0 +1,119 @@
+<!-- templates/courses/course_detail.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-8">
+    
+    <!-- 1. Course Header & Progress Bar -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8">
+        <h1 class="text-3xl lg:text-4xl font-extrabold text-gray-900 dark:text-white">{{ course.title }}</h1>
+        <p class="mt-2 text-lg text-gray-600 dark:text-gray-300">{{ course.description }}</p>
+        
+        {% if course.instructor %}
+        <div class="mt-4 flex items-center">
+            <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name={{ course.instructor.username|urlencode }}&background=indigo&color=white&font-size=0.5" alt="Instructor Avatar">
+            <div class="ml-3 rtl:mr-3">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">المعلم</p>
+                <p class="text-md font-semibold text-gray-900 dark:text-white">{{ course.instructor.username }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Progress Bar -->
+        <div class="mt-6">
+            <div class="flex justify-between mb-1">
+                <span class="text-base font-medium text-indigo-700 dark:text-indigo-400">تقدمك في الكورس</span>
+                <span class="text-sm font-medium text-indigo-700 dark:text-indigo-400">{{ progress_percentage }}%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                <div class="bg-indigo-600 h-2.5 rounded-full" style="width: {{ progress_percentage }}%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Course Syllabus (Modules and Lessons) -->
+    <div class="space-y-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">محتويات الكورس</h2>
+        
+        {% for module in modules %}
+        <!-- Module Accordion Item -->
+        <div x-data="{ open: true }" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+            <!-- Module Header (Clickable) -->
+            <button @click="open = !open" class="w-full flex justify-between items-center p-5 text-right bg-gray-50 dark:bg-gray-700/50 border-b dark:border-gray-700">
+                <span class="text-lg font-bold text-gray-800 dark:text-white">{{ module.title }}</span>
+                <svg class="w-6 h-6 transform transition-transform" :class="{'rotate-180': open}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            
+            <!-- Lessons List (Collapsible) -->
+            <div x-show="open" x-transition class="divide-y divide-gray-200 dark:divide-gray-700">
+                {% for lesson in module.lessons.all %}
+                <div class="flex items-center p-5 space-x-4 rtl:space-x-reverse group">
+                    <!-- Lesson Status Icon -->
+                    <div class="flex-shrink-0">
+                        {% if lesson.id in completed_lessons %}
+                            <div class="w-8 h-8 flex items-center justify-center rounded-full bg-green-500 text-white" title="مكتمل">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+                            </div>
+                        {% else %}
+                             <div class="w-8 h-8 flex items-center justify-center rounded-full border-2 border-gray-400 dark:border-gray-500 text-gray-400" title="غير مكتمل">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                             </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Lesson Title -->
+                    <div class="flex-grow">
+                        <p class="font-semibold text-gray-800 dark:text-gray-200 {% if lesson.id in completed_lessons %} line-through text-opacity-60 {% endif %}">
+                            {{ lesson.title }}
+                        </p>
+                        {# You can add lesson duration here in the future #}
+                        {# <p class="text-sm text-gray-500">5 دقائق</p> #}
+                    </div>
+
+                    <!-- Mark as Complete Button -->
+                    <div class="flex-shrink-0">
+                    {% if lesson.id not in completed_lessons and user.is_authenticated %}
+                        <form action="{% url 'mark_lesson_complete' lesson.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="opacity-0 group-hover:opacity-100 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold py-1 px-3 rounded-full transition-all duration-300" title="تعليم كـ (مكتمل)">
+                                إكمال
+                            </button>
+                        </form>
+                    {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <p class="p-5 text-gray-500 dark:text-gray-400">لا توجد دروس في هذه الوحدة بعد.</p>
+                {% endfor %}
+
+                <!-- Quiz Block -->
+                {% if module.quiz %}
+                <div class="p-5 bg-indigo-50 dark:bg-indigo-900/50">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                        </div>
+                        <div class="ml-3 rtl:mr-3 flex-grow">
+                            <p class="text-sm font-bold text-indigo-800 dark:text-indigo-200">اختبر معلوماتك!</p>
+                            <p class="text-xs text-indigo-700 dark:text-indigo-300">يوجد اختبار قصير في نهاية هذه الوحدة.</p>
+                        </div>
+                        <a href="{% url 'take_quiz' module.quiz.id %}" class="flex-shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors">
+                            ابدأ الاختبار
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-16 px-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4M4 7l8 4.5 8-4.5M12 12l8-4.5" /></svg>
+            <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-white">لا يوجد محتوى بعد</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">سيقوم المعلم بإضافة الوحدات والدروس قريبًا.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

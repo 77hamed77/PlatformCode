@@ -1,0 +1,101 @@
+<!-- templates/registration/login.html -->
+{% extends 'base.html' %}
+
+{% block title %}تسجيل الدخول{% endblock %}
+
+{% block content %}
+
+<div class="min-h-[70vh] flex flex-col items-center justify-center">
+    <div class="w-full max-w-md">
+        <div class="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-8 space-y-6">
+            
+            <!-- 1. Header with Icon and Welcome Message -->
+            <div class="text-center">
+                <div class="inline-block p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-full">
+                     <svg class="w-8 h-8 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                </div>
+                <h2 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
+                    تسجيل الدخول إلى حسابك
+                </h2>
+                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    أو
+                    <a href="{% url 'signup' %}" class="font-medium text-indigo-600 hover:text-indigo-500 dark:hover:text-indigo-400">
+                        أنشئ حسابًا جديدًا
+                    </a>
+                </p>
+            </div>
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- 2. Non-Field Errors (e.g., "Invalid username or password") -->
+                {% if form.non_field_errors %}
+                    <div class="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-400 p-4 rounded-md">
+                        {% for error in form.non_field_errors %}
+                            <p class="text-sm text-red-700 dark:text-red-200">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- 3. Custom-Styled Form Fields -->
+                <div>
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">اسم المستخدم</label>
+                    <div class="mt-1">
+                        <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}"
+                               class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 {% if form.username.errors %} border-red-500 {% else %} border-gray-300 {% endif %}"
+                               required>
+                        {% for error in form.username.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between">
+                        <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">كلمة المرور</label>
+                        <div class="text-sm">
+                            <a href="{% url 'password_reset' %}" class="font-medium text-indigo-600 hover:text-indigo-500 dark:hover:text-indigo-400">
+                                نسيت كلمة المرور؟
+                            </a>
+                        </div>
+                    </div>
+                    <div class="mt-1">
+                        <input type="password" name="{{ form.password.name }}" id="{{ form.password.id_for_label }}"
+                               class="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500 {% if form.password.errors %} border-red-500 {% else %} border-gray-300 {% endif %}"
+                               required>
+                        {% for error in form.password.errors %}<p class="mt-1 text-xs text-red-600">{{ error }}</p>{% endfor %}
+                    </div>
+                </div>
+
+                <!-- 4. Submit Button -->
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        تسجيل الدخول
+                    </button>
+                </div>
+            </form>
+            
+            <!-- 5. Social Login (Optional but good practice) -->
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-white dark:bg-gray-800 text-gray-500">أو سجل الدخول عبر</span>
+                </div>
+            </div>
+
+            <div>
+                <div class="grid grid-cols-2 gap-3">
+                    <a href="#" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <span class="sr-only">Sign in with Google</span>
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 48 48"><path d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/></svg>
+                    </a>
+                    <a href="#" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <span class="sr-only">Sign in with GitHub</span>
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.168 6.839 9.492.5.092.682-.217.682-.482 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.031-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.378.203 2.398.1 2.651.64.7 1.03 1.595 1.03 2.688 0 3.848-2.338 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.003 10.003 0 0022 12c0-5.523-4.477-10-10-10z" clip-rule="evenodd" /></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

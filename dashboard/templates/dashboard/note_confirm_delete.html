@@ -1,0 +1,62 @@
+<!-- templates/dashboard/note_confirm_delete.html -->
+{% extends 'base.html' %}
+{% load markdown_extras %} {# Ensure you have the markdown filter available #}
+
+{% block title %}تأكيد حذف المذكرة{% endblock %}
+
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+        <div class="p-8 sm:p-10">
+            
+            <!-- 1. Warning Icon and Header -->
+            <div class="flex flex-col sm:flex-row items-center text-center sm:text-right">
+                <div class="flex-shrink-0 mb-4 sm:mb-0 sm:mr-6 rtl:sm:ml-6">
+                    <div class="flex items-center justify-center h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/50">
+                        <svg class="h-10 w-10 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold text-gray-900 dark:text-white">تأكيد حذف المذكرة</h1>
+                    <p class="mt-1 text-md text-gray-500 dark:text-gray-400">
+                        هذا الإجراء لا يمكن التراجع عنه. ستفقد هذه المذكرة إلى الأبد.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 2. Note Preview (Context) -->
+            <div class="mt-8 p-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                <h2 class="font-bold text-lg">{{ note.title }}</h2>
+                <div class="prose prose-sm max-w-none text-gray-600 dark:text-gray-400 mt-2">
+                    <!-- Displaying a snippet of the content for context -->
+                    {{ note.content|markdownify|truncatewords_html:30 }}
+                </div>
+            </div>
+
+            <!-- 3. Confirmation Form with clear actions -->
+            <form method="post" class="mt-8">
+                {% csrf_token %}
+                <p class="text-center text-sm text-gray-600 dark:text-gray-400 mb-4">هل أنت متأكد من رغبتك في المتابعة؟</p>
+                <div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-4 rtl:sm:space-x-reverse space-y-2 space-y-reverse sm:space-y-0">
+                    
+                    <!-- Cancel Button (Safe Action) -->
+                    <a href="{% url 'dashboard' %}" class="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        لا، تراجع
+                    </a>
+
+                    <!-- Delete Button (Destructive Action) -->
+                    <button type="submit" class="w-full sm:w-auto flex items-center justify-center px-6 py-2.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        نعم، احذف المذكرة
+                    </button>
+                    
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

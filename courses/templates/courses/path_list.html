@@ -1,0 +1,74 @@
+<!-- templates/courses/path_list.html -->
+{% extends "base.html" %}
+
+{% block title %}المسارات التعليمية{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+    <!-- 1. Page Header: Clear and inspiring -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white sm:text-5xl">
+            المسارات التعليمية
+        </h1>
+        <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-500 dark:text-gray-400">
+            اختر تخصصك وابدأ رحلة منظمة من الأساسيات إلى الاحتراف.
+        </p>
+    </div>
+
+    <!-- 2. Grid of Path Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for path in paths %}
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-2 transition-all duration-300">
+                <a href="{% url 'path_detail' path.id %}" class="block h-full flex flex-col">
+                    
+                    <!-- Card Header with Icon -->
+                    <div class="p-6">
+                        <div class="flex items-center justify-center h-16 w-16 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg mx-auto">
+                            <!-- Placeholder for unique icons per path in the future -->
+                            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 012 2v1h-4V8a2 2 0 012-2zm0 8a2 2 0 012 2v1h-4v-1a2 2 0 012-2zm-3 6V8a2 2 0 012-2h4a2 2 0 012 2v10a2 2 0 01-2 2h-4a2 2 0 01-2-2z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Card Body with Content -->
+                    <div class="px-6 pb-6 text-center flex-grow">
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                            {{ path.title }}
+                        </h2>
+                        <p class="mt-2 text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                            {{ path.description|truncatewords:20 }}
+                        </p>
+                    </div>
+
+                    <!-- Card Footer with Stats -->
+                    <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-100 dark:border-gray-700 rounded-b-2xl">
+                        <div class="flex justify-around text-sm font-medium text-gray-600 dark:text-gray-300">
+                            <span class="flex items-center">
+                                <svg class="w-4 h-4 mr-1.5 rtl:ml-1.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                                <span>{{ path.courses.count }} كورسات</span>
+                            </span>
+                            <span class="text-gray-200 dark:text-gray-600">|</span>
+                            <span class="flex items-center">
+                                <svg class="w-4 h-4 mr-1.5 rtl:ml-1.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                {# Placeholder for estimated time #}
+                                <span>~ {{ path.courses.count|multiply:5 }} ساعات</span>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% empty %}
+        <!-- Improved Empty State (Full Width) -->
+        <div class="md:col-span-2 lg:col-span-3 text-center py-16 px-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+            </svg>
+            <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-white">لا توجد مسارات تعليمية بعد</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">نحن نعمل بجد على إعداد مسارات جديدة. ترقبها قريبًا!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

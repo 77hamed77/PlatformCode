@@ -1,0 +1,80 @@
+<!-- templates/problems/problem_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ problem.title }}{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- LEFT COLUMN: PROBLEM INFO -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 space-y-6">
+        <div>
+            <div class="flex items-center space-x-3 rtl:space-x-reverse mb-2">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ problem.title }}</h1>
+                <!-- 2. CLEANER: Calling the model method for CSS classes -->
+                <span class="px-3 py-1 text-xs font-semibold rounded-full {{ problem.get_difficulty_color_classes }}">
+                    {{ problem.get_difficulty_display }}
+                </span>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">النقاط المتاحة: <span class="font-bold">{{ problem.points }}</span></p>
+        </div>
+        <div class="prose dark:prose-invert max-w-none">
+            <h2 class="font-semibold">وصف المسألة</h2>
+            {{ problem.description|linebreaksbr }}
+        </div>
+        <div>
+            <h2 class="font-semibold mb-2">أمثلة</h2>
+            {% for test_case in problem.test_cases.all %}
+                <div class="border border-gray-200 dark:border-gray-700 rounded-md p-4 mb-3">
+                    <p class="..."><strong class="font-semibold">الإدخال:</strong> <pre>{{ test_case.input_data }}</pre></p>
+                    <p class="..."><strong class="font-semibold">الناتج المتوقع:</strong> <pre>{{ test_case.expected_output }}</pre></p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN: CODE EDITOR & SUBMISSIONS -->
+    <div class="space-y-6">
+        <!-- 3. CRITICAL FIX (UX): The form now uses HTMX for submission -->
+        <form hx-post="{% url 'submission_create' problem.id %}" hx-target="#submission-history" hx-swap="innerHTML" id="solution-form">
+            {% csrf_token %}
+            <div>
+                <h2 class="text-lg font-semibold mb-2">قدّم الحل الخاص بك (Python)</h2>
+                <div class="border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                    <textarea name="code" id="code-editor">...</textarea>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button type="submit" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg ...">
+                    <!-- HTMX Indicator for loading state -->
+                    <span class="htmx-indicator">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" ...><circle ...></circle></svg>
+                        جاري المعالجة...
+                    </span>
+                    <span class="htmx-no-indicator">
+                        <svg class="w-5 h-5 ml-2 rtl:mr-2" ...></svg>
+                        <span>اختبار وتقديم الحل</span>
+                    </span>
+                </button>
+            </div>
+        </form>
+
+        <!-- Submissions History: This div is now the target for HTMX updates -->
+        <div id="submission-history" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            {% include 'problems/partials/submission_history.html' %}
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to initialize CodeMirror -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+            lineNumbers: true,
+            mode: "python",
+            theme: "dracula",
+            indentUnit: 4,
+            matchBrackets: true,
+        });
+    });
+</script>
+{% endblock %}

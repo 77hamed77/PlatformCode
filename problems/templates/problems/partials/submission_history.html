@@ -1,0 +1,15 @@
+<!-- templates/problems/partials/submission_history.html -->
+<h2 class="text-lg font-semibold mb-4">تاريخ التقديمات</h2>
+<ul class="space-y-3">
+    {% for sub in submissions %}
+    {% with styles=sub.get_status_styles %}
+    <li class="flex items-center justify-between p-3 rounded-md {{ styles.bg }}">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 {{ styles.icon_text }} mr-2 rtl:ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">{{ styles.icon_svg|safe }}</svg>
+            <span class="font-medium {{ styles.text }}">{{ sub.get_status_display }}</span>
+        </div>
+        <span class="text-sm text-gray-500 dark:text-gray-400 font-mono">{{ sub.submitted_at|date:"Y-m-d H:i" }}</span>
+    </li>
+    {% endwith %}
+    {% endfor %}
+</ul>

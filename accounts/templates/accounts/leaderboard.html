@@ -1,0 +1,106 @@
+<!-- templates/accounts/leaderboard.html -->
+{% extends 'base.html' %}
+
+{% block title %}لوحة الصدارة{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    
+    <!-- 1. Page Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-6xl font-extrabold text-amber-400">🏆</h1>
+        <h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+            لوحة الصدارة
+        </h2>
+        <p class="mt-4 text-lg leading-6 text-gray-600 dark:text-gray-300">
+            الأبطال الذين يتربعون على عرش النقاط في منصة كود. كن منهم!
+        </p>
+    </div>
+
+    <!-- 2. The Podium for Top 3 -->
+    <div class="relative grid grid-cols-3 gap-4 md:gap-8 items-end mb-12">
+        <!-- Second Place -->
+        {% if top_three|length > 1 %}
+        <div class="relative text-center order-2">
+            <div class="relative inline-block w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-slate-300 shadow-lg p-1 bg-white dark:bg-gray-800">
+                <img class="w-full h-full rounded-full object-cover" src="https://ui-avatars.com/api/?name={{ top_three.1.username|urlencode }}&background=E2E8F0&color=475569" alt="">
+                <span class="absolute -top-4 -right-4 text-4xl">🥈</span>
+            </div>
+            <h3 class="mt-4 text-lg md:text-xl font-bold text-gray-800 dark:text-white">{{ top_three.1.username }}</h3>
+            <div class="h-20 md:h-32 bg-slate-300 dark:bg-slate-600 rounded-t-lg shadow-inner flex items-center justify-center">
+                <span class="text-xl md:text-2xl font-extrabold text-white">{{ top_three.1.score }}</span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- First Place -->
+        {% if top_three|length > 0 %}
+        <div class="relative text-center order-1">
+            <div class="relative inline-block w-28 h-28 md:w-40 md:h-40 rounded-full border-4 border-amber-400 shadow-lg p-1 bg-white dark:bg-gray-800">
+                <img class="w-full h-full rounded-full object-cover" src="https://ui-avatars.com/api/?name={{ top_three.0.username|urlencode }}&background=FBBF24&color=92400E" alt="">
+                <span class="absolute -top-5 -right-5 text-5xl">🥇</span>
+            </div>
+            <h3 class="mt-4 text-xl md:text-2xl font-bold text-amber-500">{{ top_three.0.username }}</h3>
+            <div class="h-32 md:h-48 bg-amber-400 dark:bg-amber-500 rounded-t-lg shadow-inner flex items-center justify-center">
+                 <span class="text-2xl md:text-3xl font-extrabold text-white">{{ top_three.0.score }}</span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Third Place -->
+        {% if top_three|length > 2 %}
+        <div class="relative text-center order-3">
+            <div class="relative inline-block w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-amber-700 shadow-lg p-1 bg-white dark:bg-gray-800">
+                <img class="w-full h-full rounded-full object-cover" src="https://ui-avatars.com/api/?name={{ top_three.2.username|urlencode }}&background=F59E0B&color=92400E" alt="">
+                <span class="absolute -top-4 -right-4 text-4xl">🥉</span>
+            </div>
+            <h3 class="mt-4 text-lg md:text-xl font-bold text-gray-800 dark:text-white">{{ top_three.2.username }}</h3>
+            <div class="h-16 md:h-24 bg-amber-700 dark:bg-amber-800 rounded-t-lg shadow-inner flex items-center justify-center">
+                 <span class="text-xl md:text-2xl font-extrabold text-white">{{ top_three.2.score }}</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 3. Current User's Rank Card (if authenticated and not in top 3) -->
+    {% if user.is_authenticated and current_user_rank and current_user_rank.rank > 3 %}
+    <div class="mb-8">
+        <h3 class="text-lg font-semibold text-center mb-3 text-gray-700 dark:text-gray-300">ترتيبك الحالي</h3>
+        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-1 rounded-2xl shadow-lg">
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-5">
+                 <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                    <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 w-12 text-center">#{{ current_user_rank.rank }}</span>
+                    <img class="h-12 w-12 rounded-full object-cover" src="https://ui-avatars.com/api/?name={{ user.username|urlencode }}&background=random" alt="">
+                    <div class="flex-1 min-w-0"><p class="text-lg font-bold text-gray-900 dark:text-white truncate">أنت</p></div>
+                    <div class="inline-flex items-center text-xl font-semibold text-gray-900 dark:text-white">{{ user.score }} <span class="text-base font-medium text-gray-500 ml-2 rtl:mr-2">نقطة</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 4. Rest of the Leaderboard -->
+    <div class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl">
+        <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+            {% for student in rest_of_students %}
+            <li class="p-4 sm:p-5 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <div class="flex items-center space-x-4 rtl:space-x-reverse">
+                    <span class="text-lg font-bold text-gray-500 dark:text-gray-400 w-12 text-center">#{{ student.rank }}</span>
+                    <img class="h-12 w-12 rounded-full object-cover" src="https://ui-avatars.com/api/?name={{ student.username|urlencode }}&background=random" alt="">
+                    <div class="flex-1 min-w-0"><p class="text-lg font-bold text-gray-900 dark:text-white truncate">{{ student.username }}</p></div>
+                    <div class="inline-flex items-center text-xl font-semibold text-gray-900 dark:text-white">{{ student.score }} <span class="text-base font-medium text-gray-500 ml-2 rtl:mr-2">نقطة</span></div>
+                </div>
+            </li>
+            {% empty %}
+                {% if not top_three %}
+                <div class="text-center py-16 px-6">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.122-1.28-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.122-1.28.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-white">لا يوجد متصدرون بعد</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">ابدأ بحل المسائل وإكمال الدروس لتكون أول الأبطال!</p>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
