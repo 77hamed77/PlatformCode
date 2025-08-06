@@ -5,28 +5,35 @@
 
 {% block content %}
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    
     <!-- LEFT COLUMN: PROBLEM INFO -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 space-y-6">
         <div>
             <div class="flex items-center space-x-3 rtl:space-x-reverse mb-2">
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ problem.title }}</h1>
-                <!-- 2. CLEANER: Calling the model method for CSS classes -->
-                <span class="px-3 py-1 text-xs font-semibold rounded-full {{ problem.get_difficulty_color_classes }}">
+                <span class="px-3 py-1 text-xs font-semibold rounded-full
+                    {% if problem.difficulty == 'Easy' %} bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 {% endif %}
+                    {% if problem.difficulty == 'Medium' %} bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 {% endif %}
+                    {% if problem.difficulty == 'Hard' %} bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300 {% endif %}">
                     {{ problem.get_difficulty_display }}
                 </span>
             </div>
             <p class="text-sm text-gray-500 dark:text-gray-400">النقاط المتاحة: <span class="font-bold">{{ problem.points }}</span></p>
         </div>
+
         <div class="prose dark:prose-invert max-w-none">
             <h2 class="font-semibold">وصف المسألة</h2>
             {{ problem.description|linebreaksbr }}
         </div>
+
         <div>
             <h2 class="font-semibold mb-2">أمثلة</h2>
             {% for test_case in problem.test_cases.all %}
                 <div class="border border-gray-200 dark:border-gray-700 rounded-md p-4 mb-3">
-                    <p class="..."><strong class="font-semibold">الإدخال:</strong> <pre>{{ test_case.input_data }}</pre></p>
-                    <p class="..."><strong class="font-semibold">الناتج المتوقع:</strong> <pre>{{ test_case.expected_output }}</pre></p>
+                    <p class="font-mono text-sm"><strong class="font-semibold">الإدخال:</strong></p>
+                    <pre class="bg-gray-100 dark:bg-gray-700 p-2 rounded mt-1">{{ test_case.input_data }}</pre>
+                    <p class="font-mono text-sm mt-2"><strong class="font-semibold">الناتج المتوقع:</strong></p>
+                    <pre class="bg-gray-100 dark:bg-gray-700 p-2 rounded mt-1">{{ test_case.expected_output }}</pre>
                 </div>
             {% endfor %}
         </div>
@@ -34,24 +41,29 @@
 
     <!-- RIGHT COLUMN: CODE EDITOR & SUBMISSIONS -->
     <div class="space-y-6">
-        <!-- 3. CRITICAL FIX (UX): The form now uses HTMX for submission -->
-        <form hx-post="{% url 'submission_create' problem.id %}" hx-target="#submission-history" hx-swap="innerHTML" id="solution-form">
+        <!-- CRITICAL FIX: The form now uses the correct URL name and primary key (pk) -->
+        <form hx-post="{% url 'problems:problem_submit' problem.pk %}" hx-target="#submission-history" hx-swap="innerHTML" id="solution-form">
             {% csrf_token %}
             <div>
                 <h2 class="text-lg font-semibold mb-2">قدّم الحل الخاص بك (Python)</h2>
                 <div class="border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
-                    <textarea name="code" id="code-editor">...</textarea>
+                    <textarea name="code" id="code-editor" rows="15">def solve():
+    # اكتب الكود الخاص بك هنا
+    # استخدم print() لطباعة الناتج النهائي
+    pass
+
+solve()</textarea>
                 </div>
             </div>
             <div class="mt-4 flex justify-end">
-                <button type="submit" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg ...">
-                    <!-- HTMX Indicator for loading state -->
+                <button type="submit" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg flex items-center justify-center">
+                     <!-- HTMX Indicator for loading state -->
                     <span class="htmx-indicator">
-                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" ...><circle ...></circle></svg>
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         جاري المعالجة...
                     </span>
                     <span class="htmx-no-indicator">
-                        <svg class="w-5 h-5 ml-2 rtl:mr-2" ...></svg>
+                        <svg class="w-5 h-5 ml-2 rtl:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                         <span>اختبار وتقديم الحل</span>
                     </span>
                 </button>
@@ -60,7 +72,7 @@
 
         <!-- Submissions History: This div is now the target for HTMX updates -->
         <div id="submission-history" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-            {% include 'problems/partials/submission_history.html' %}
+            {% include 'problems/partials/submission_history.html' with submissions=submissions %}
         </div>
     </div>
 </div>

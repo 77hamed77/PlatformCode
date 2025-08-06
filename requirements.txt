@@ -1,0 +1,4 @@
+django-widget-tweaks
+django-htmx
+RestrictedPython
+markdown

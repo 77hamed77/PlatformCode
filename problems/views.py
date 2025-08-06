@@ -1,7 +1,8 @@
 # problems/views.py
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import get_object_or_404, render, redirect
+from django.db.models import Exists, OuterRef
+from django.shortcuts import get_object_or_404, render
 from django.views.generic import DetailView, ListView, View
 
 from .models import Problem, Submission
@@ -9,74 +10,75 @@ from .services import JudgingService
 
 
 class ProblemListView(ListView):
-    """
-    يعرض قائمة بجميع المسائل المتاحة.
-    """
     model = Problem
     template_name = 'problems/problem_list.html'
     context_object_name = 'problems'
 
-    def get_context_data(self, **kwargs):
+    def get_queryset(self):
         """
-        يضيف سمة محسوبة لكل مسألة لتحديد ما إذا كان المستخدم قد حلها.
+        2. CRITICAL FIX (Performance): Uses annotation and a subquery to determine
+           if a problem is solved, all within a single, efficient database query.
         """
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-        solved_ids = set()
+        queryset = super().get_queryset()
         
-        if user.is_authenticated:
-            solved_ids = set(
-                Submission.objects.filter(student=user, status=Submission.Status.CORRECT)
-                                  .values_list('problem_id', flat=True)
+        if self.request.user.is_authenticated:
+            # Create a subquery that checks for the existence of a correct submission
+            # for the "outer" problem's pk.
+            solved_subquery = Submission.objects.filter(
+                problem=OuterRef('pk'),
+                student=self.request.user,
+                status=Submission.Status.CORRECT
             )
-        
-        problem_list = context['problems']
-        for problem in problem_list:
-            problem.is_solved_by_user = problem.id in solved_ids
+            queryset = queryset.annotate(
+                is_solved_by_user=Exists(solved_subquery)
+            )
             
-        context['problems'] = problem_list
-        return context
+        return queryset
 
 
 class ProblemDetailView(LoginRequiredMixin, DetailView):
-    """
-    يعرض تفاصيل مسألة واحدة وسجل تقديمات المستخدم لها.
-    """
     model = Problem
     template_name = 'problems/problem_detail.html'
     context_object_name = 'problem'
-    pk_url_kwarg = 'problem_id'
+    pk_url_kwarg = 'pk' # Standardizing to pk
 
     def get_queryset(self):
-        """
-        يحسن الأداء عبر جلب كل حالات الاختبار المتعلقة في استعلام واحد.
-        """
         queryset = super().get_queryset()
         return queryset.prefetch_related('test_cases')
 
     def get_context_data(self, **kwargs):
-        """
-        يضيف سجل تقديمات المستخدم لهذه المسألة.
-        """
         context = super().get_context_data(**kwargs)
-        context['submissions'] = Submission.objects.filter(
+        # 3. FIX (DRY): This logic is now encapsulated here.
+        context['submissions'] = self.get_user_submissions()
+        return context
+    
+    def get_user_submissions(self):
+        """Helper method to fetch user submissions for this problem."""
+        return Submission.objects.filter(
             problem=self.object,
             student=self.request.user
         ).order_by('-submitted_at')
-        return context
 
 
 class SubmissionCreateView(LoginRequiredMixin, View):
     """
-    يعالج طلبات إنشاء التقديمات (POST فقط) ويستخدم HTMX لتجربة سلسة.
+    Handles POST requests for creating submissions.
+    Uses HTMX for a seamless, partial-page update.
     """
     def post(self, request, *args, **kwargs):
-        problem = get_object_or_404(Problem.objects.prefetch_related('test_cases'), pk=kwargs['problem_id'])
+        # The `prefetch_related` here ensures the JudgingService is efficient.
+        problem = get_object_or_404(Problem.objects.prefetch_related('test_cases'), pk=kwargs['pk'])
         code = request.POST.get('code', '')
 
-        # يفوض كل منطق الحكم إلى طبقة الخدمات
+        # Delegate all judging logic to the service layer
         JudgingService.judge_submission(problem=problem, student=request.user, code=code)
         
-        # يرجع القالب الجزئي المحدث لسجل التقديمات لـ HTMX
-        submissions = Submission.objects.filter(problem=problem, student=request.user).order_by('-submitted_at')
-        return render(request, 'problems/partials/submission_history.html', {'submissions': submissions})
+        # 4. FIX (DRY): Instead of re-querying, we create an instance of the
+        # DetailView to reuse its submission-fetching logic.
+        detail_view = ProblemDetailView()
+        detail_view.request = request
+        detail_view.object = problem
+        
+        context = detail_view.get_context_data()
+        
+        return render(request, 'problems/partials/submission_history.html', context)

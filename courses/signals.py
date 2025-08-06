@@ -1,56 +1,56 @@
-# gamification/signals.py
+# courses/signals.py
 
-from django.db import transaction
-from django.db.models import F
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-# 1. FIX: Import all relevant models
-from courses.models import StudentProgress, QuizSubmission
+# استيراد النماذج من جميع التطبيقات ذات الصلة
+from .models import StudentProgress, QuizSubmission
 from problems.models import Submission as ProblemSubmission
-from .utils import award_points # We will create this utility function
 
-# 2. BEST PRACTICE: Centralized signal handlers for all gamification logic.
+# استيراد الدالة المساعدة الآمنة
+from .utils import award_points_safely
+
+# =================================================================
+# Signal Handlers for Gamification
+# =================================================================
 
 @receiver(post_save, sender=StudentProgress)
-def award_points_on_lesson_completion(sender, instance, created, **kwargs):
+def on_lesson_completion(sender, instance, created, **kwargs):
     """
-    Awards points when a student completes a lesson for the first time.
+    يمنح نقاطًا عند إكمال درس لأول مرة.
     """
     if created:
-        # 3. BEST PRACTICE: Points can be defined on the lesson/course model for flexibility
-        points = instance.lesson.points or 10 # Assuming a 'points' field on Lesson model
-        award_points(student=instance.student, points=points)
-        print(f"Awarded {points} points to {instance.student.username} for completing a lesson.")
+        # ملاحظة: في المستقبل، يمكنك إضافة حقل "points" إلى نموذج Lesson
+        # points_to_award = instance.lesson.points
+        points_to_award = 10  # قيمة ثابتة حاليًا
+        award_points_safely(instance.student, points_to_award)
 
 
 @receiver(post_save, sender=QuizSubmission)
-def award_points_on_quiz_submission(sender, instance, created, **kwargs):
+def on_quiz_submission(sender, instance, created, **kwargs):
     """
-    Awards points based on quiz score for the first submission.
+    يمنح نقاطًا بناءً على درجة الاختبار في المحاولة الأولى.
     """
-    # Award points only on the first attempt
     if created and instance.score > 0:
-        points = int(instance.score / 10) # Example: 10 points for a perfect score
-        if points > 0:
-            award_points(student=instance.student, points=points)
-            print(f"Awarded {points} points to {instance.student.username} for quiz performance.")
+        points_to_award = int(instance.score / 10)
+        if points_to_award > 0:
+            award_points_safely(instance.student, points_to_award)
 
 
 @receiver(post_save, sender=ProblemSubmission)
-def award_points_on_correct_submission(sender, instance, created, **kwargs):
+def on_correct_submission(sender, instance, created, **kwargs):
     """
-    Awards points when a student solves a problem correctly for the first time.
+    يمنح نقاطًا عند حل مسألة بشكل صحيح لأول مرة.
+    (تم نقل هذا المنطق هنا لمركزية نظام النقاط)
     """
     if created and instance.status == 'Correct':
-        # Check if this is the first correct submission for this problem by this student
-        is_first_correct_solve = not ProblemSubmission.objects.filter(
+        # تحقق مما إذا كان هذا هو الحل الصحيح الأول لهذه المسألة من قبل هذا الطالب
+        is_first_correct = not ProblemSubmission.objects.filter(
             student=instance.student,
             problem=instance.problem,
             status='Correct'
         ).exclude(pk=instance.pk).exists()
 
-        if is_first_correct_solve:
-            points = instance.problem.points
-            award_points(student=instance.student, points=points)
-            print(f"Awarded {points} points to {instance.student.username} for solving a problem.")
+        if is_first_correct:
+            points_to_award = instance.problem.points
+            award_points_safely(instance.student, points_to_award)

@@ -1,28 +1,28 @@
-# gamification/utils.py
+# courses/utils.py
 
-from django.db import transaction, F
+from django.db import transaction
+from django.db.models import F
 
-def award_points(student, points):
+def award_points_safely(student, points_to_award):
     """
-    Safely awards points to a student.
-    - Uses a transaction to ensure atomicity.
-    - Uses F() expressions to prevent race conditions.
+    دالة آمنة ومركزية لمنح النقاط لمستخدم.
+    - تمنع حالات السباق (Race Conditions) باستخدام F() expressions.
+    - تضمن اتساق البيانات باستخدام معاملة ذرية (atomic transaction).
     """
-    if not student or not points or points <= 0:
+    if not student or not points_to_award or points_to_award <= 0:
         return
 
     try:
-        # 4. CRITICAL FIX (Atomicity): Ensures that the entire operation succeeds or fails together.
         with transaction.atomic():
-            # The `select_for_update()` locks the user row, preventing other processes
-            # from modifying it until this transaction is complete.
-            user_to_update = student.__class__.objects.select_for_update().get(pk=student.pk)
+            # تحديث النقاط مباشرة في قاعدة البيانات لتجنب حالات السباق
+            student.score = F('score') + points_to_award
+            student.save(update_fields=['score'])
             
-            # 5. CRITICAL FIX (Race Condition): F() expressions update the value directly in the database.
-            # This is an atomic operation and avoids the read-then-write problem.
-            user_to_update.score = F('score') + points
-            user_to_update.save(update_fields=['score'])
+            # تحديث الكائن في ذاكرة Python ليعكس القيمة الجديدة فورًا
+            student.refresh_from_db(fields=['score'])
+            
+            print(f"Awarded {points_to_award} points to {student.username}. New score: {student.score}")
 
     except Exception as e:
-        # Handle potential exceptions, e.g., log the error
-        print(f"Error awarding points to {student.username}: {e}")
+        # من الجيد تسجيل الأخطاء في المشاريع الحقيقية
+        print(f"CRITICAL: Failed to award points to {student.username}. Error: {e}")

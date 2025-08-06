@@ -2,13 +2,8 @@
 
 from django.conf import settings
 from django.db import models
-from django.db.models import Count, Q
 from django.core.exceptions import ValidationError
 
-
-# =================================================================
-# Core Content Models
-# =================================================================
 
 class LearningPath(models.Model):
     title = models.CharField("عنوان المسار", max_length=200, unique=True)
@@ -28,24 +23,19 @@ class Course(models.Model):
     title = models.CharField("عنوان الكورس", max_length=200)
     description = models.TextField("وصف الكورس")
     instructor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="المعلم")
-    
-    # 1. FIX (Performance): Using a dedicated library like `django-ordered-model` is the best
-    # solution for ordering. For simplicity here, we'll keep `order` but add an index.
     order = models.PositiveIntegerField(default=0, db_index=True)
 
     class Meta:
         verbose_name = "كورس"
         verbose_name_plural = "الكورسات"
         ordering = ['order']
-        unique_together = ('learning_path', 'title') # Prevent duplicate course titles within the same path
+        unique_together = ('learning_path', 'title')
 
     def __str__(self):
         return self.title
 
-    # 2. HELPER METHOD: Centralizes logic, making views thinner.
     def get_lessons_count(self):
-        """Efficiently calculates the total number of lessons in the course."""
-        return Lesson.objects.filter(module__course=self).count()
+        return self.lessons.count()
 
 
 class Module(models.Model):
@@ -66,11 +56,7 @@ class Module(models.Model):
 
 class Lesson(models.Model):
     module = models.ForeignKey(Module, related_name='lessons', on_delete=models.CASCADE, verbose_name="الوحدة")
-    
-    # 3. FIX (Performance): Adding a direct ForeignKey to Course for simpler queries.
-    # This is a form of denormalization for performance.
     course = models.ForeignKey(Course, related_name='lessons', on_delete=models.CASCADE, verbose_name="الكورس")
-    
     title = models.CharField("عنوان الدرس", max_length=200)
     content = models.TextField("محتوى الدرس")
     video_url = models.URLField("رابط الفيديو", blank=True)
@@ -83,7 +69,6 @@ class Lesson(models.Model):
         unique_together = ('module', 'title')
 
     def save(self, *args, **kwargs):
-        """Overrides save to automatically set the course."""
         if not self.course_id:
             self.course = self.module.course
         super().save(*args, **kwargs)
@@ -92,12 +77,8 @@ class Lesson(models.Model):
         return self.title
 
 
-# =================================================================
-# Quiz & Progress Models
-# =================================================================
-
 class Quiz(models.Model):
-    module = models.OneToOneField(Module, on_delete=models.CASCADE, verbose_name="الوحدة التابع لها")
+    module = models.OneToOneField(Module, related_name='quiz', on_delete=models.CASCADE, verbose_name="الوحدة التابع لها")
     title = models.CharField("عنوان الاختبار", max_length=255)
 
     class Meta:
@@ -133,19 +114,12 @@ class Choice(models.Model):
     def __str__(self):
         return self.text
     
-    # 4. CRITICAL FIX (Data Integrity): Ensures there is one and only one correct answer per question.
     def clean(self):
-        """
-        Custom validation to enforce business logic.
-        This is called automatically by ModelForms (like in the admin).
-        """
         if self.is_correct:
-            # Check if there are other choices for the same question that are already correct.
             other_correct_choices = Choice.objects.filter(
                 question=self.question, 
                 is_correct=True
             ).exclude(pk=self.pk)
-            
             if other_correct_choices.exists():
                 raise ValidationError("لا يمكن وجود أكثر من إجابة صحيحة واحدة لهذا السؤال.")
 

@@ -2,14 +2,23 @@
 <h2 class="text-lg font-semibold mb-4">تاريخ التقديمات</h2>
 <ul class="space-y-3">
     {% for sub in submissions %}
-    {% with styles=sub.get_status_styles %}
-    <li class="flex items-center justify-between p-3 rounded-md {{ styles.bg }}">
+    <li class="flex items-center justify-between p-3 rounded-md 
+        {% if sub.status == sub.Status.CORRECT %} bg-green-50 dark:bg-green-900/50 {% endif %}
+        {% if sub.status == sub.Status.WRONG %} bg-red-50 dark:bg-red-900/50 {% endif %}
+        {% if sub.status == sub.Status.ERROR %} bg-yellow-50 dark:bg-yellow-900/50 {% endif %}">
         <div class="flex items-center">
-            <svg class="w-5 h-5 {{ styles.icon_text }} mr-2 rtl:ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">{{ styles.icon_svg|safe }}</svg>
-            <span class="font-medium {{ styles.text }}">{{ sub.get_status_display }}</span>
+            {% if sub.status == sub.Status.CORRECT %}
+                <svg class="w-5 h-5 text-green-500 mr-2 rtl:ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            {% elif sub.status == sub.Status.WRONG %}
+                <svg class="w-5 h-5 text-red-500 mr-2 rtl:ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            {% else %}
+                <svg class="w-5 h-5 text-yellow-500 mr-2 rtl:ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            {% endif %}
+            <span class="font-medium {% if sub.status == sub.Status.CORRECT %} text-green-700 dark:text-green-300 {% endif %} {% if sub.status == sub.Status.WRONG %} text-red-700 dark:text-red-300 {% endif %} {% if sub.status == sub.Status.ERROR %} text-yellow-700 dark:text-yellow-300 {% endif %}">{{ sub.get_status_display }}</span>
         </div>
         <span class="text-sm text-gray-500 dark:text-gray-400 font-mono">{{ sub.submitted_at|date:"Y-m-d H:i" }}</span>
     </li>
-    {% endwith %}
+    {% empty %}
+    <p class="text-center text-gray-500 py-4 text-sm">لم تقم بتقديم أي حلول لهذه المسألة بعد.</p>
     {% endfor %}
 </ul>

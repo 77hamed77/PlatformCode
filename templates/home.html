@@ -30,10 +30,11 @@
             
             <!-- Call to Action Buttons -->
             <div class="mt-10 max-w-sm mx-auto sm:max-w-none sm:flex sm:justify-center space-y-4 sm:space-y-0 sm:space-x-4 rtl:sm:space-x-reverse">
-                <a href="{% url 'path_list' %}" class="flex items-center justify-center w-full sm:w-auto px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-lg text-indigo-700 bg-white hover:bg-indigo-50 transform hover:scale-105 transition-transform duration-300">
+                <!-- CRITICAL FIX: Added app namespaces to URLs -->
+                <a href="{% url 'courses:path_list' %}" class="flex items-center justify-center w-full sm:w-auto px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-lg text-indigo-700 bg-white hover:bg-indigo-50 transform hover:scale-105 transition-transform duration-300">
                     ابدأ رحلتك التعليمية
                 </a>
-                <a href="{% url 'problem_list' %}" class="flex items-center justify-center w-full sm:w-auto px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-lg text-white bg-indigo-500 hover:bg-indigo-600 transform hover:scale-105 transition-transform duration-300">
+                <a href="{% url 'problems:problem_list' %}" class="flex items-center justify-center w-full sm:w-auto px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-lg text-white bg-indigo-500 hover:bg-indigo-600 transform hover:scale-105 transition-transform duration-300">
                     خُض التحدي الآن
                 </a>
             </div>

@@ -1,9 +1,10 @@
-# gamification/apps.py
+# courses/apps.py
 from django.apps import AppConfig
 
-class GamificationConfig(AppConfig):
+class CoursesConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'gamification'
+    name = 'courses'
 
     def ready(self):
-        import gamification.signals
+        # هذا هو المكان الوحيد الذي يجب أن يتم فيه استيراد الإشارات
+        import courses.signals

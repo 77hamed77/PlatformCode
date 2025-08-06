@@ -8,25 +8,21 @@
 <div class="max-w-7xl mx-auto">
     <!-- Page Header -->
     <div class="text-center mb-12">
-        <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white sm:text-5xl">
-            ساحة حل المسائل
-        </h1>
-        <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-500 dark:text-gray-400">
-            اصقل مهاراتك، تحدى نفسك، وارتقِ في لوحة الصدارة.
-        </p>
+        <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white sm:text-5xl">ساحة حل المسائل</h1>
+        <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-500 dark:text-gray-400">اصقل مهاراتك، تحدى نفسك، وارتقِ في لوحة الصدارة.</p>
     </div>
 
     <!-- Interactive Filters & Table Container -->
     <div x-data="{ filter: 'All' }" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden">
         
-        <!-- Filter Buttons -->
+        <!-- Filter Buttons - CRITICAL FIX: Using string literals for filtering -->
         <div class="p-4 border-b border-gray-200 dark:border-gray-700">
             <div class="flex flex-wrap items-center gap-2">
                 <span class="text-sm font-medium text-gray-600 dark:text-gray-300">تصفية حسب المستوى:</span>
                 <button @click="filter = 'All'" :class="{'bg-indigo-600 text-white': filter === 'All', 'bg-gray-200 dark:bg-gray-700': filter !== 'All'}" class="px-3 py-1 text-sm font-semibold rounded-full transition-colors">الكل</button>
-                <button @click="filter = '{{ Problem.Difficulty.EASY }}'" :class="{'bg-green-600 text-white': filter === '{{ Problem.Difficulty.EASY }}', 'bg-gray-200 dark:bg-gray-700': filter !== '{{ Problem.Difficulty.EASY }}'}" class="px-3 py-1 text-sm font-semibold rounded-full transition-colors">سهل</button>
-                <button @click="filter = '{{ Problem.Difficulty.MEDIUM }}'" :class="{'bg-yellow-500 text-white': filter === '{{ Problem.Difficulty.MEDIUM }}', 'bg-gray-200 dark:bg-gray-700': filter !== '{{ Problem.Difficulty.MEDIUM }}'}" class="px-3 py-1 text-sm font-semibold rounded-full transition-colors">متوسط</button>
-                <button @click="filter = '{{ Problem.Difficulty.HARD }}'" :class="{'bg-red-600 text-white': filter === '{{ Problem.Difficulty.HARD }}', 'bg-gray-200 dark:bg-gray-700': filter !== '{{ Problem.Difficulty.HARD }}'}" class="px-3 py-1 text-sm font-semibold rounded-full transition-colors">صعب</button>
+                <button @click="filter = 'Easy'" :class="{'bg-green-600 text-white': filter === 'Easy', 'bg-gray-200 dark:bg-gray-700': filter !== 'Easy'}" class="px-3 py-1 text-sm font-semibold rounded-full transition-colors">سهل</button>
+                <button @click="filter = 'Medium'" :class="{'bg-yellow-500 text-white': filter === 'Medium', 'bg-gray-200 dark:bg-gray-700': filter !== 'Medium'}" class="px-3 py-1 text-sm font-semibold rounded-full transition-colors">متوسط</button>
+                <button @click="filter = 'Hard'" :class="{'bg-red-600 text-white': filter === 'Hard', 'bg-gray-200 dark:bg-gray-700': filter !== 'Hard'}" class="px-3 py-1 text-sm font-semibold rounded-full transition-colors">صعب</button>
             </div>
         </div>
 
@@ -44,54 +40,32 @@
                 </thead>
                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {% for problem in problems %}
-                        <tr x-show="filter === 'All' || filter === '{{ problem.difficulty }}'" 
-                            class="transition-colors {% if problem.is_solved_by_user %} bg-green-50/50 dark:bg-green-900/20 hover:bg-green-50 dark:hover:bg-green-900/30 {% else %} hover:bg-gray-50 dark:hover:bg-gray-700/50 {% endif %}">
-                            
-                            <!-- Status Cell -->
+                        <tr x-show="filter === 'All' || filter === '{{ problem.difficulty }}'" class="transition-colors {% if problem.is_solved_by_user %} bg-green-50/50 dark:bg-green-900/20 hover:bg-green-50 dark:hover:bg-green-900/30 {% else %} hover:bg-gray-50 dark:hover:bg-gray-700/50 {% endif %}">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 {% if problem.is_solved_by_user %}
-                                    <span title="لقد قمت بحل هذه المسألة بنجاح">
-                                        <svg class="w-6 h-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                    </span>
+                                <span title="لقد قمت بحل هذه المسألة بنجاح"><svg class="w-6 h-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
                                 {% endif %}
                             </td>
-                            
-                            <!-- Title Cell -->
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <a href="{% url 'problem_detail' problem.id %}" class="text-sm font-medium text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400">
-                                    {{ problem.title }}
-                                </a>
+                                <!-- CRITICAL FIX: Using correct URL name and pk -->
+                                <a href="{% url 'problems:problem_detail' problem.pk %}" class="text-sm font-medium text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400">{{ problem.title }}</a>
                             </td>
-                            
-                            <!-- Difficulty Badge Cell -->
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <!-- 3. CLEANER: Call the model method to get CSS classes -->
-                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ problem.get_difficulty_color_classes }}">
-                                    {{ problem.get_difficulty_display }}
-                                </span>
+                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if problem.difficulty == 'Easy' %} bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 
+                                {% elif problem.difficulty == 'Medium' %} bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300
+                                {% else %} bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300 {% endif %}">
+                                {{ problem.get_difficulty_display }}</span>
                             </td>
-
-                            <!-- Points Cell -->
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-mono">{{ problem.points }}</td>
-                            
-                            <!-- Action Cell -->
                             <td class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
-                                <a href="{% url 'problem_detail' problem.id %}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
-                                    {% if problem.is_solved_by_user %}مراجعة الحل{% else %}ابدأ الحل{% endif %} →
+                                <a href="{% url 'problems:problem_detail' problem.pk %}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                    {% if problem.is_solved_by_user %}مراجعة الحل{% else %}ابدأ الحل{% endif %} &rarr;
                                 </a>
                             </td>
                         </tr>
                     {% empty %}
-                        <!-- Improved Empty State -->
-                        <tr>
-                            <td colspan="5">
-                                <div class="text-center py-16 px-6">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-                                    <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-white">لا توجد مسائل متاحة بعد</h3>
-                                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">سيقوم المشرفون بإضافة تحديات جديدة قريبًا. ترقب!</p>
-                                </div>
-                            </td>
-                        </tr>
+                        <tr><td colspan="5"><div class="text-center py-16 px-6">...</div></td></tr>
                     {% endfor %}
                 </tbody>
             </table>

@@ -1,9 +1,7 @@
 # problems/services.py
 
-# 1. CRITICAL FIX: Import tools for sandboxing
 from RestrictedPython import compile_restricted
 from RestrictedPython.Guards import safe_builtins, full_write_guard, guarded_iter_unpack_sequence
-
 import io
 import sys
 from .models import Submission
@@ -16,43 +14,27 @@ class JudgingService:
     
     @staticmethod
     def _safe_execute(user_code, test_input):
-        """
-        Executes user code in a sandboxed environment.
-        This prevents access to the filesystem, database, and other sensitive operations.
-        """
-        # Define allowed built-in functions. `print`, `int`, `str`, etc., are safe.
+        """Executes user code in a sandboxed environment."""
         restricted_globals = {'__builtins__': safe_builtins}
-        
-        # Define security guards
         restricted_locals = {
-            '_write_': full_write_guard,  # Prevents writing to unauthorized attributes
-            '_getiter_': guarded_iter_unpack_sequence, # Safely handles iteration
+            '_write_': full_write_guard,
+            '_getiter_': guarded_iter_unpack_sequence,
             '_unpack_sequence_': guarded_iter_unpack_sequence,
         }
         
-        # Redirect stdout and stdin
         old_stdout, sys.stdout = sys.stdout, io.StringIO()
-        old_stdin, sys.stdin = sys.stdin, io.StringIO(str(test_input)) # Ensure input is a string
+        old_stdin, sys.stdin = sys.stdin, io.StringIO(str(test_input))
         
         output, status, error_message = "", "Error", ""
 
         try:
-            # 2. CRITICAL FIX: Compile the code in restricted mode first.
-            # This fails early if the code contains forbidden syntax (like `import os`).
             byte_code = compile_restricted(user_code, '<string>', 'exec')
-            
-            # Execute the compiled bytecode with restricted globals and locals.
             exec(byte_code, restricted_globals, restricted_locals)
-            
             status = "Success"
-        except SyntaxError as e:
-            error_message = f"Syntax Error: {e}"
         except Exception as e:
-            # Catch any other runtime errors that might occur
-            error_message = f"Runtime Error: {type(e).__name__} - {e}"
+            error_message = f"Runtime Error: {type(e).__name__} ({e})"
         finally:
             output = sys.stdout.getvalue().strip()
-            # Always restore stdout and stdin
             sys.stdout = old_stdout
             sys.stdin = old_stdin
 
@@ -62,11 +44,13 @@ class JudgingService:
     def judge_submission(cls, problem, student, code):
         """
         Judges a user's code against all test cases for a problem.
-        Creates a Submission object with the final result.
-        Returns the created Submission object.
+        
+        1. FIX (Efficiency): This method now expects `problem.test_cases` to be pre-fetched
+           by the caller (the view), avoiding an extra database query here.
         """
         final_status = Submission.Status.CORRECT
 
+        # This will use the pre-fetched test cases, not hit the DB again.
         for test_case in problem.test_cases.all():
             actual_output, exec_status, _ = cls._safe_execute(code, test_case.input_data)
             
