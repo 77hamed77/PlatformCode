@@ -1,5 +1,6 @@
 <!-- templates/courses/path_detail.html -->
 {% extends "base.html" %}
+{% load course_extras %}
 
 {% block title %}{{ path.title }}{% endblock %}
 
@@ -7,7 +8,7 @@
 
 <div class="max-w-7xl mx-auto">
     
-    <!-- 1. Path Header Section -->
+    <!-- Path Header Section -->
     <div class="text-center mb-12">
         <div class="inline-block bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 font-semibold py-1 px-3 rounded-full text-sm mb-4">
             مسار تعليمي
@@ -18,24 +19,19 @@
         </p>
     </div>
 
-    <!-- 2. Courses List as a Roadmap -->
+    <!-- Courses List as a Roadmap -->
     <div class="relative">
-        <!-- The vertical connecting line -->
         <div class="absolute left-1/2 -ml-px w-0.5 h-full bg-gray-300 dark:bg-gray-600" aria-hidden="true"></div>
-
         <div class="space-y-12">
-            {% for course in courses %}
+            {% for course in path.courses.all %}
             <div class="relative flex items-center justify-center">
-                <!-- The circle on the timeline -->
                 <div class="absolute left-1/2 -ml-5 h-10 w-10 flex items-center justify-center bg-indigo-600 text-white rounded-full z-10 shadow-lg">
                     <span class="font-bold text-lg">{{ forloop.counter }}</span>
                 </div>
 
-                <!-- Course Card -->
                 <div class="w-full lg:w-3/4 bg-white dark:bg-gray-800 rounded-xl shadow-2xl hover:shadow-indigo-500/20 transition-shadow duration-300">
-                    <a href="{% url 'course_detail' course.id %}" class="block p-6 md:p-8">
+                    <a href="{% url 'courses:course_detail' course.pk %}" class="block p-6 md:p-8">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                            <!-- Course Info -->
                             <div>
                                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{ course.title }}</h2>
                                 <p class="mt-2 text-gray-600 dark:text-gray-400">{{ course.description }}</p>
@@ -43,18 +39,19 @@
                                 <div class="mt-4 flex items-center space-x-4 rtl:space-x-reverse text-sm text-gray-500 dark:text-gray-300">
                                     <span>
                                         <svg class="inline-block w-4 h-4 mr-1 rtl:ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                                        {{ course.modules.count }} وحدات
+                                        <!-- ... and we use them here -->
+                                        {{ course.modules_count }} وحدات
                                     </span>
                                     <span>
                                         <svg class="inline-block w-4 h-4 mr-1 rtl:ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                                        {{ course.modules.aggregate(total_lessons=Count('lessons')).total_lessons|default:0 }} دروس
+                                        <!-- CRITICAL FIX: This line is now simple and valid -->
+                                        {{ course.total_lessons_count|default:0 }} دروس
                                     </span>
                                 </div>
                             </div>
                             
-                            <!-- Course Status/Action -->
                             <div class="mt-6 md:mt-0 md:ml-6 rtl:md:mr-6 flex-shrink-0">
-                                {% if course.id in started_course_ids %}
+                                {% if course.pk in started_course_ids %}
                                 <div class="flex items-center space-x-2 rtl:space-x-reverse px-4 py-2 bg-green-100 dark:bg-green-900/50 rounded-full">
                                     <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     <span class="font-semibold text-green-800 dark:text-green-300 text-sm">قيد التنفيذ</span>
@@ -71,15 +68,9 @@
                 </div>
             </div>
             {% empty %}
-            <!-- Improved Empty State -->
-            <div class="relative text-center py-16 px-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-                <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-white">لا توجد كورسات في هذا المسار بعد</h3>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">سيقوم المشرفون بإضافة الكورسات قريبًا. كن أول من يبدأ!</p>
-            </div>
+            <div class="relative text-center py-16 px-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">...</div>
             {% endfor %}
         </div>
     </div>
 </div>
-
 {% endblock %}

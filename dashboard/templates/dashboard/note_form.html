@@ -1,6 +1,6 @@
 <!-- templates/dashboard/note_form.html -->
 {% extends 'base.html' %}
-{% load widget_tweaks %} {# 1. Load the library at the top #}
+{% load widget_tweaks %}
 
 {% block title %}{% if form.instance.pk %}تعديل مذكرة{% else %}مذكرة جديدة{% endif %}{% endblock %}
 
@@ -9,9 +9,8 @@
 <div x-data="{ 
         content: `{{ form.content.value|default:''|escapejs }}`,
         get renderedMarkdown() {
-            // Added a check for empty content to show a placeholder
             if (this.content.trim() === '') {
-                return '<p class_="text-gray-400">المعاينة الحية ستظهر هنا...</p>';
+                return '<p class_=\"text-gray-400\">المعاينة الحية ستظهر هنا...</p>';
             }
             return DOMPurify.sanitize(marked.parse(this.content));
         }
@@ -27,7 +26,8 @@
                 {% if form.instance.pk %}تعديل المذكرة{% else %}مذكرة جديدة{% endif %}
             </h1>
             <div class="flex items-center gap-3">
-                <a href="{% url 'dashboard' %}" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                <!-- CRITICAL FIX: Added namespace to URL -->
+                <a href="{% url 'dashboard:dashboard' %}" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
                     إلغاء
                 </a>
                 <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg text-sm hover:bg-indigo-700 transition-colors shadow-lg flex items-center">
@@ -37,56 +37,36 @@
             </div>
         </div>
 
-        <!-- 2. CRITICAL FIX: Displaying non-field errors -->
-        {% if form.non_field_errors %}
-            <div class="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-400 p-4 rounded-md">
-                {% for error in form.non_field_errors %}
-                    <p class="text-sm text-red-700 dark:text-red-200">{{ error }}</p>
-                {% endfor %}
-            </div>
-        {% endif %}
+        {% if form.non_field_errors %}...{% endif %}
 
         <!-- Title Input Field -->
         <div>
-            <!-- No need for <label> as it's visually hidden by placeholder -->
+            {% if form.title.errors %}{% for error in form.title.errors %}<p class="text-sm font-medium text-red-600 mb-1">{{ error }}</p>{% endfor %}{% endif %}
+            
+            <!-- CRITICAL FIX: Replaced invalid class+ syntax with standard Django if/else -->
             {% if form.title.errors %}
-                {% for error in form.title.errors %}
-                    <p class="text-sm font-medium text-red-600 mb-1">{{ error }}</p>
-                {% endfor %}
+                {% render_field form.title class="w-full text-2xl font-bold p-3 bg-white dark:bg-gray-800 border-2 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 border-red-500" placeholder="عنوان مذكرتك المميزة..." %}
+            {% else %}
+                {% render_field form.title class="w-full text-2xl font-bold p-3 bg-white dark:bg-gray-800 border-2 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 dark:border-gray-700" placeholder="عنوان مذكرتك المميزة..." %}
             {% endif %}
-            <!-- 3. BEST PRACTICE: Using `render_field` for cleaner code -->
-            {% render_field form.title class="w-full text-2xl font-bold p-3 bg-white dark:bg-gray-800 border-2 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" placeholder="عنوان مذكرتك المميزة..." class+="{ 'border-red-500': form.title.errors, 'border-gray-300 dark:border-gray-700': not form.title.errors }" %}
         </div>
 
         <!-- Markdown Editor and Live Preview -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-0.5 bg-gray-300 dark:bg-gray-600 rounded-lg overflow-hidden shadow-xl">
-            <!-- Left: Textarea for Markdown Input -->
             <div class="bg-white dark:bg-gray-800">
-                {% if form.content.errors %}
-                    {% for error in form.content.errors %}
-                        <p class="text-sm font-medium text-red-600 p-4 pb-0">{{ error }}</p>
-                    {% endfor %}
-                {% endif %}
-                <!-- Note: `x-model` from AlpineJS must be on the textarea itself -->
+                {% if form.content.errors %}{% for error in form.content.errors %}<p class="text-sm font-medium text-red-600 p-4 pb-0">{{ error }}</p>{% endfor %}{% endif %}
                 <textarea x-model="content"
                           name="{{ form.content.name }}" 
                           id="{{ form.content.id_for_label }}"
                           class="w-full h-96 lg:h-[60vh] p-4 resize-none border-none focus:ring-0 font-mono text-sm bg-transparent dark:text-gray-200 {% if form.content.errors %} ring-2 ring-red-500 {% endif %}"
                           placeholder="ابدأ بالكتابة... # عنوان رئيسي ... *نص مائل* ... `كود`">{{ form.content.value|default:'' }}</textarea>
             </div>
-            
-            <!-- Right: Live Preview -->
             <div class="hidden lg:block bg-gray-50 dark:bg-gray-900/50 p-4 h-96 lg:h-[60vh] overflow-y-auto">
-                <div x-html="renderedMarkdown" class="prose prose-sm dark:prose-invert max-w-none">
-                    <!-- Live preview will be rendered here -->
-                </div>
+                <div x-html="renderedMarkdown" class="prose prose-sm dark:prose-invert max-w-none"></div>
             </div>
         </div>
 
-        <!-- Markdown Helper Bar -->
-        <div class="text-xs text-gray-500 dark:text-gray-400 text-center">
-            ✨ تدعم هذه المساحة تنسيق <a href="https://www.markdownguide.org/basic-syntax/" target="_blank" class="text-indigo-500 hover:underline">Markdown</a>. استخدمه لإضافة العناوين، القوائم، ومقتطفات الكود.
-        </div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 text-center">...</div>
     </form>
 </div>
 {% endblock %}

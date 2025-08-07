@@ -8,57 +8,45 @@
     x-data="{
         currentQuestion: 0,
         totalQuestions: {{ quiz.questions.all.count }},
+        selections: {}, // An object to store answers, e.g., { 'question_id': 'choice_id' }
         next() { if (this.currentQuestion < this.totalQuestions - 1) this.currentQuestion++; },
         prev() { if (this.currentQuestion > 0) this.currentQuestion--; },
-        isAnswered(index) {
-            const inputs = document.querySelectorAll(`input[name='question_{{ quiz.questions.all.first.id|add:-1|add:"${index+1}"}}']`);
-            return Array.from(inputs).some(input => input.checked);
+        isCurrentQuestionAnswered() {
+            // Get the ID of the current question
+            const currentQuestionId = document.querySelectorAll('[data-question-id]')[this.currentQuestion]?.dataset.questionId;
+            return this.selections.hasOwnProperty(`question_${currentQuestionId}`);
         }
     }">
 
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
-        <!-- 1. Header with Progress Bar -->
+        <!-- Header with Progress Bar -->
         <div class="p-6 border-b border-gray-200 dark:border-gray-700">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ quiz.title }}</h1>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">اختر الإجابة الصحيحة لكل سؤال.</p>
-            
-            <!-- Progress Bar -->
             <div class="mt-4">
-                <div class="flex justify-between mb-1">
-                    <span class="text-base font-medium text-indigo-700 dark:text-indigo-400">التقدم</span>
-                    <span class="text-sm font-medium text-indigo-700 dark:text-indigo-400" x-text="`السؤال ${currentQuestion + 1} من ${totalQuestions}`"></span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                    <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" :style="`width: ${((currentQuestion + 1) / totalQuestions) * 100}%`"></div>
-                </div>
+                <div class="flex justify-between mb-1"><span class="text-base font-medium text-indigo-700 dark:text-indigo-400">التقدم</span><span class="text-sm font-medium text-indigo-700 dark:text-indigo-400" x-text="`السؤال ${currentQuestion + 1} من ${totalQuestions}`"></span></div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700"><div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" :style="`width: ${((currentQuestion + 1) / totalQuestions) * 100}%`"></div></div>
             </div>
         </div>
 
         <form method="post">
             {% csrf_token %}
             <div class="p-6 sm:p-8">
-                <!-- Questions Container -->
                 {% for question in quiz.questions.all %}
-                    <div x-show="currentQuestion === {{ forloop.counter0 }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-x-4" x-transition:enter-end="opacity-100 transform translate-x-0" class="space-y-6">
-                        
-                        <!-- Question Text -->
+                    <div x-show="currentQuestion === {{ forloop.counter0 }}" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-x-4" x-transition:enter-end="opacity-100 transform translate-x-0" class="space-y-6" data-question-id="{{ question.pk }}">
                         <div>
-                            <p class="text-lg font-semibold text-gray-900 dark:text-white leading-relaxed">
-                                <span class="text-indigo-600 dark:text-indigo-400 font-bold" x-text="`Q${currentQuestion + 1}: `"></span>
-                                {{ question.text }}
-                            </p>
+                            <p class="text-lg font-semibold text-gray-900 dark:text-white leading-relaxed"><span class="text-indigo-600 dark:text-indigo-400 font-bold" x-text="`Q${currentQuestion + 1}: `"></span>{{ question.text }}</p>
                         </div>
-                        
-                        <!-- Choices -->
                         <div class="space-y-4">
                             {% for choice in question.choices.all %}
+                            <!-- CRITICAL FIX: Simplified the logic using Alpine's state -->
                             <label class="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200"
-                                   :class="{ 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/50': document.querySelector('#choice-{{ choice.id }}').checked, 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600': !document.querySelector('#choice-{{ choice.id }}').checked }">
-                                <input type="radio" id="choice-{{ choice.id }}" name="question_{{ question.id }}" value="{{ choice.id }}" required class="hidden">
-                                <span class="text-2xl" 
-                                      :class="{ 'text-indigo-600': document.querySelector('#choice-{{ choice.id }}').checked, 'text-gray-400': !document.querySelector('#choice-{{ choice.id }}').checked }">
-                                    <svg x-show="document.querySelector('#choice-{{ choice.id }}').checked" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
-                                    <svg x-show="!document.querySelector('#choice-{{ choice.id }}').checked" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd" /></svg>
+                                   :class="{ 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/50': selections['question_{{ question.pk }}'] == '{{ choice.pk }}', 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600': selections['question_{{ question.pk }}'] != '{{ choice.pk }}' }">
+                                <input type="radio" name="question_{{ question.pk }}" value="{{ choice.pk }}" required class="hidden"
+                                       @change="selections['question_{{ question.pk }}'] = '{{ choice.pk }}'">
+                                <span class="text-2xl" :class="{ 'text-indigo-600': selections['question_{{ question.pk }}'] == '{{ choice.pk }}', 'text-gray-400': selections['question_{{ question.pk }}'] != '{{ choice.pk }}' }">
+                                    <svg x-show="selections['question_{{ question.pk }}'] == '{{ choice.pk }}'" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                                    <svg x-show="selections['question_{{ question.pk }}'] != '{{ choice.pk }}'" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd" /></svg>
                                 </span>
                                 <span class="ml-3 rtl:mr-3 font-medium text-gray-800 dark:text-gray-200">{{ choice.text }}</span>
                             </label>
@@ -70,25 +58,11 @@
                 {% endfor %}
             </div>
 
-            <!-- 3. Navigation and Submission Footer -->
+            <!-- Navigation and Submission Footer -->
             <div class="p-6 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                <button type="button" @click="prev()" :disabled="currentQuestion === 0" 
-                        class="px-5 py-2 text-sm font-medium rounded-lg transition-colors"
-                        :class="{'bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500': currentQuestion > 0, 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed': currentQuestion === 0}">
-                    السابق
-                </button>
-                
-                <!-- "Next" button shows on all questions except the last -->
-                <button type="button" @click="next()" x-show="currentQuestion < totalQuestions - 1"
-                        class="bg-indigo-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-indigo-700 transition-colors shadow-lg">
-                    التالي →
-                </button>
-
-                <!-- "Submit" button shows only on the last question -->
-                <button type="submit" x-show="currentQuestion === totalQuestions - 1"
-                        class="bg-green-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-green-700 transition-colors shadow-lg">
-                    إنهاء و إرسال الإجابات
-                </button>
+                <button type="button" @click="prev()" :disabled="currentQuestion === 0" class="px-5 py-2 text-sm font-medium rounded-lg transition-colors" :class="{'bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500': currentQuestion > 0, 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed': currentQuestion === 0}">السابق</button>
+                <button type="button" @click="next()" x-show="currentQuestion < totalQuestions - 1" :disabled="!isCurrentQuestionAnswered()" class="bg-indigo-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-indigo-700 transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed">التالي &rarr;</button>
+                <button type="submit" x-show="currentQuestion === totalQuestions - 1" :disabled="!isCurrentQuestionAnswered()" class="bg-green-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-green-700 transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed">إنهاء و إرسال الإجابات</button>
             </div>
         </form>
     </div>

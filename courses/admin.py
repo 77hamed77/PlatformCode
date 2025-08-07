@@ -1,6 +1,8 @@
 # courses/admin.py
 
 from django.contrib import admin
+# CRITICAL FIX: Import the 'Count' aggregation function
+from django.db.models import Count 
 from .models import (
     LearningPath, Course, Module, Lesson,
     Quiz, Question, Choice, StudentProgress, QuizSubmission
@@ -11,43 +13,34 @@ from .models import (
 # =================================================================
 
 class ChoiceInline(admin.TabularInline):
-    """Allows adding choices directly within the Question admin page."""
     model = Choice
-    extra = 1  # Start with one extra choice field
-    min_num = 2  # A question must have at least 2 choices
-    max_num = 5  # A question can have at most 5 choices
+    extra = 1
+    min_num = 2
+    max_num = 5
 
 
 class QuestionInline(admin.StackedInline):
-    """Allows adding questions and their choices directly within the Quiz admin page."""
     model = Question
     inlines = [ChoiceInline]
     extra = 1
-    show_change_link = True # Allows quick navigation to the question's own admin page
+    show_change_link = True
 
 
 class QuizInline(admin.StackedInline):
-    """Allows creating a quiz directly within the Module admin page."""
     model = Quiz
-    # We don't need to add questions here, it's better to manage them from the Quiz page.
     show_change_link = True
 
 
 class LessonInline(admin.TabularInline):
-    """Allows adding lessons directly within the Module admin page."""
     model = Lesson
     extra = 1
-    fields = ('title', 'order') # Keep it simple, edit content on the lesson's own page
+    fields = ('title', 'order')
     show_change_link = True
 
 
 class ModuleInline(admin.StackedInline):
-    """
-    CRITICAL FIX (UX): The core of the new experience.
-    Allows managing all modules of a course from the course page itself.
-    """
     model = Module
-    inlines = [LessonInline] # Nesting lessons inside modules
+    inlines = [LessonInline]
     extra = 1
     show_change_link = True
     
@@ -60,16 +53,14 @@ class LearningPathAdmin(admin.ModelAdmin):
     list_display = ('title', 'course_count')
     search_fields = ('title',)
 
-    # 1. FIX (Performance): Annotate to get course count in a single query.
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         queryset = queryset.annotate(course_count=Count('courses'))
         return queryset
 
+    @admin.display(description="عدد الكورسات", ordering='course_count')
     def course_count(self, obj):
         return obj.course_count
-    course_count.short_description = "عدد الكورسات"
-    course_count.admin_order_field = 'course_count'
 
 
 @admin.register(Course)
@@ -77,12 +68,9 @@ class CourseAdmin(admin.ModelAdmin):
     list_display = ('title', 'learning_path', 'instructor', 'order', 'modules_count', 'lessons_count')
     list_filter = ('learning_path', 'instructor')
     search_fields = ('title', 'description')
-    list_editable = ('order',) # Allows quick reordering from the list view
-    
-    # 2. UX IMPROVEMENT: This is the main change for a better workflow.
+    list_editable = ('order',)
     inlines = [ModuleInline]
 
-    # 3. FIX (Performance): Use `select_related` and `annotate` for a super-fast list view.
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         queryset = queryset.select_related('learning_path', 'instructor').annotate(
@@ -91,19 +79,15 @@ class CourseAdmin(admin.ModelAdmin):
         )
         return queryset
 
+    @admin.display(description="عدد الوحدات", ordering='modules_count')
     def modules_count(self, obj):
         return obj.modules_count
-    modules_count.short_description = "عدد الوحدات"
-    modules_count.admin_order_field = 'modules_count'
 
+    @admin.display(description="إجمالي الدروس", ordering='lessons_count')
     def lessons_count(self, obj):
         return obj.lessons_count
-    lessons_count.short_description = "إجمالي الدروس"
-    lessons_count.admin_order_field = 'lessons_count'
 
 
-# Note: We don't need a separate ModuleAdmin anymore if we manage them from CourseAdmin.
-# However, it can be useful for direct access if needed.
 @admin.register(Module)
 class ModuleAdmin(admin.ModelAdmin):
     list_display = ('title', 'course', 'order')
@@ -111,8 +95,6 @@ class ModuleAdmin(admin.ModelAdmin):
     search_fields = ('title',)
     list_editable = ('order',)
     inlines = [LessonInline, QuizInline]
-    
-    # FIX (Performance)
     list_select_related = ('course',)
 
 
@@ -122,8 +104,6 @@ class LessonAdmin(admin.ModelAdmin):
     list_filter = ('module__course__learning_path', 'module__course')
     search_fields = ('title', 'content')
     list_editable = ('order',)
-    
-    # FIX (Performance)
     list_select_related = ('module', 'course')
 
 
@@ -138,9 +118,9 @@ class QuizAdmin(admin.ModelAdmin):
         queryset = queryset.annotate(question_count=Count('questions'))
         return queryset
     
+    @admin.display(description="عدد الأسئلة", ordering='question_count')
     def question_count(self, obj):
         return obj.question_count
-    question_count.short_description = "عدد الأسئلة"
 
 
 @admin.register(Question)
@@ -154,9 +134,9 @@ class QuestionAdmin(admin.ModelAdmin):
         queryset = queryset.annotate(choices_count=Count('choices'))
         return queryset
 
+    @admin.display(description="عدد الخيارات", ordering='choices_count')
     def choices_count(self, obj):
         return obj.choices_count
-    choices_count.short_description = "عدد الخيارات"
 
 
 # Register read-only models for inspection
@@ -164,11 +144,17 @@ class QuestionAdmin(admin.ModelAdmin):
 class StudentProgressAdmin(admin.ModelAdmin):
     list_display = ('student', 'lesson', 'completed_at')
     list_select_related = ('student', 'lesson')
-    readonly_fields = ('student', 'lesson', 'completed_at')
+    
+    def has_add_permission(self, request): return False
+    def has_change_permission(self, request, obj=None): return False
+    def has_delete_permission(self, request, obj=None): return False
 
 
 @admin.register(QuizSubmission)
 class QuizSubmissionAdmin(admin.ModelAdmin):
     list_display = ('student', 'quiz', 'score', 'submitted_at')
     list_select_related = ('student', 'quiz')
-    readonly_fields = ('student', 'quiz', 'score', 'submitted_at')
+    
+    def has_add_permission(self, request): return False
+    def has_change_permission(self, request, obj=None): return False
+    def has_delete_permission(self, request, obj=None): return False

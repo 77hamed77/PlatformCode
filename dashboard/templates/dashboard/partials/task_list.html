@@ -1,7 +1,8 @@
 <!-- templates/dashboard/partials/task_list.html -->
 {% for task in tasks %}
 <div id="task-{{ task.pk }}" class="flex items-center group">
-    <form hx-post="{% url 'task_toggle' task.pk %}" hx-target="#task-{{ task.pk }}" hx-swap="outerHTML" class="ml-3 rtl:mr-3">
+    
+    <form hx-post="{% url 'dashboard:task_toggle' task.pk %}" hx-target="#task-{{ task.pk }}" hx-swap="outerHTML" class="ml-3 rtl:mr-3">
         {% csrf_token %}
         <button type="submit" class="cursor-pointer">
             <div class="w-5 h-5 border-2 rounded-md flex items-center justify-center {% if task.is_completed %} border-green-500 bg-green-500 {% else %} border-gray-400 group-hover:border-indigo-500 {% endif %} transition-colors">
@@ -16,7 +17,8 @@
         {{ task.title }}
     </span>
     
-    <form hx-post="{% url 'task_delete' task.pk %}" hx-target="#task-{{ task.pk }}" hx-swap="outerHTML" hx-confirm="هل أنت متأكد من حذف هذه المهمة؟">
+    <!-- CRITICAL FIX: Removed `hx-confirm` and added `class="confirm-delete"` -->
+    <form hx-post="{% url 'dashboard:task_delete' task.pk %}" hx-target="#task-{{ task.pk }}" hx-swap="outerHTML" class="confirm-delete">
         {% csrf_token %}
         <button type="submit" class="text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -24,9 +26,5 @@
     </form>
 </div>
 {% empty %}
-    {% if not tasks and not first_load %}
-        <!-- This empty message is only needed if the list becomes empty after a delete action -->
-    {% else %}
-        <p class="text-center text-gray-500 py-4 text-sm">لا توجد مهام. استمتع بيومك!</p>
-    {% endif %}
+    <p class="text-center text-gray-500 py-4 text-sm">لا توجد مهام. استمتع بيومك!</p>
 {% endfor %}

@@ -1,14 +1,16 @@
 # courses/views.py
 
+# ----------------------------------------------------------------
+# Imports (Cleaned and organized)
+# ----------------------------------------------------------------
+import math
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Q
-from django.http import HttpResponseForbidden
+from django.db.models import Count, Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.views.generic import DetailView, ListView
 
 from .models import Choice, Course, LearningPath, Lesson, Quiz, QuizSubmission, StudentProgress
-
 
 # =================================================================
 # PUBLIC VIEWS (Accessible to all users)
@@ -16,11 +18,8 @@ from .models import Choice, Course, LearningPath, Lesson, Quiz, QuizSubmission, 
 
 class LearningPathListView(ListView):
     """
-    FIX: Replaced function with a more maintainable Class-Based View.
-    Displays a list of all available learning paths.
-    - `model` defines the data to fetch.
-    - `template_name` defines the template to render.
-    - `context_object_name` defines the variable name in the template.
+    يعرض قائمة بجميع المسارات التعليمية المتاحة.
+    - يستخدم ListView ليكون الكود موجزًا ومعياريًا.
     """
     model = LearningPath
     template_name = 'courses/path_list.html'
@@ -29,31 +28,31 @@ class LearningPathListView(ListView):
 
 class LearningPathDetailView(DetailView):
     """
-    FIX: Replaced function with a DetailView and optimized queries.
-    Displays details for a single learning path, including its courses.
-    - `prefetch_related` is used to avoid N+1 query problems.
+    يعرض تفاصيل مسار تعليمي واحد، بما في ذلك كورساته.
+    - مُحسَّن للأداء باستخدام prefetch_related و annotate.
     """
     model = LearningPath
     template_name = 'courses/path_detail.html'
     context_object_name = 'path'
-    pk_url_kwarg = 'path_id' # Maps the URL keyword 'path_id' to the primary key lookup
+    pk_url_kwarg = 'pk'  # موحد لاستخدام 'pk' من الـ URL
 
     def get_queryset(self):
         """
-        CRITICAL FIX (Performance): Pre-fetches related data to prevent N+1 queries.
-        This one optimization can reduce database queries from dozens to just a few.
+        تحسين الأداء الحرج: يجلب مسبقًا جميع البيانات ذات الصلة
+        لمنع مشاكل N+1 query في القالب.
         """
         queryset = super().get_queryset()
         return queryset.prefetch_related(
-            models.Prefetch('courses', queryset=Course.objects.annotate(
-                modules_count=Count('modules'),
-                total_lessons_count=Count('modules__lessons')
+            Prefetch('courses', queryset=Course.objects.annotate(
+                # حساب عدد الوحدات والدروس على مستوى قاعدة البيانات
+                modules_count=Count('modules', distinct=True),
+                total_lessons_count=Count('lessons', distinct=True)
             ))
         )
 
     def get_context_data(self, **kwargs):
         """
-        Adds extra context for the template, like which courses the user has started.
+        يضيف بيانات إضافية إلى السياق، مثل الكورسات التي بدأها المستخدم.
         """
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
@@ -61,34 +60,34 @@ class LearningPathDetailView(DetailView):
             context['started_course_ids'] = set(
                 StudentProgress.objects.filter(
                     student=self.request.user,
-                    lesson__module__course__in=all_courses_in_path
-                ).values_list('lesson__module__course_id', flat=True)
+                    lesson__course__in=all_courses_in_path
+                ).values_list('lesson__course_id', flat=True)
             )
         return context
 
 
 class CourseDetailView(DetailView):
     """
-    FIX: Replaced function with a DetailView and optimized queries.
-    Displays details for a single course, including its modules and lessons.
+    يعرض تفاصيل كورس واحد، بما في ذلك وحداته ودروسه.
+    - مُحسَّن للأداء ومصمم لحساب وعرض تقدم المستخدم.
     """
     model = Course
     template_name = 'courses/course_detail.html'
     context_object_name = 'course'
-    pk_url_kwarg = 'course_id'
+    pk_url_kwarg = 'pk'
 
     def get_queryset(self):
         """
-        CRITICAL FIX (Performance): Fetches all modules and their lessons in a single, efficient query.
+        تحسين الأداء: يجلب الكورس مع عدد دروسه، وجميع وحداته ودروسها
+        في استعلامات قليلة وفعالة.
         """
         queryset = super().get_queryset()
+        queryset = queryset.annotate(total_lessons_count=Count('lessons', distinct=True))
         return queryset.prefetch_related('modules__lessons')
 
     def get_context_data(self, **kwargs):
         """
-        Adds extra context:
-        - `completed_lessons`: A set of lesson IDs completed by the user.
-        - `progress_percentage`: The user's completion percentage for the course.
+        يضيف بيانات التقدم: الدروس المكتملة والنسبة المئوية للإنجاز.
         """
         context = super().get_context_data(**kwargs)
         course = self.object
@@ -98,11 +97,11 @@ class CourseDetailView(DetailView):
             completed_lessons = set(
                 StudentProgress.objects.filter(
                     student=self.request.user,
-                    lesson__module__course=course
+                    lesson__course=course
                 ).values_list('lesson_id', flat=True)
             )
         
-        all_lessons_count = Lesson.objects.filter(module__course=course).count()
+        all_lessons_count = course.total_lessons_count
         progress_percentage = 0
         if all_lessons_count > 0:
             progress_percentage = round((len(completed_lessons) / all_lessons_count) * 100)
@@ -118,99 +117,88 @@ class CourseDetailView(DetailView):
 
 class MarkLessonCompleteView(LoginRequiredMixin, View):
     """
-    FIX: Replaced function with a more secure and robust Class-Based View.
-    Handles the action of a student marking a lesson as complete.
-    - `LoginRequiredMixin` ensures only logged-in users can access this.
-    - Only accepts POST requests for security.
+    يعالج إجراء تعليم درس على أنه مكتمل (POST فقط للأمان).
     """
     def post(self, request, *args, **kwargs):
-        lesson = get_object_or_404(Lesson, id=kwargs['lesson_id'])
-        
-        # `get_or_create` is an atomic and efficient way to handle this.
+        lesson = get_object_or_404(Lesson, pk=kwargs['pk'])
         StudentProgress.objects.get_or_create(student=request.user, lesson=lesson)
-        
-        return redirect('course_detail', course_id=lesson.module.course.id)
+        return redirect('courses:course_detail', pk=lesson.course.pk)
 
 
 class TakeQuizView(LoginRequiredMixin, View):
     """
-    FIX: Replaced function with a CBV for better structure and logic separation.
-    Handles displaying and processing a quiz.
+    يعرض نموذج الاختبار ويعالج تقديم الإجابات.
     """
     def get(self, request, *args, **kwargs):
-        quiz = get_object_or_404(Quiz.objects.prefetch_related('questions__choices'), id=kwargs['quiz_id'])
-        
-        # FIX (Performance): Use `select_related` and `filter` once, not `exists()` then `get()`.
+        quiz = get_object_or_404(Quiz.objects.prefetch_related('questions__choices'), pk=kwargs['pk'])
         submission = QuizSubmission.objects.filter(student=request.user, quiz=quiz).first()
         if submission:
-            return redirect('quiz_result', submission_id=submission.id)
-            
+            return redirect('courses:quiz_result', pk=submission.pk)
         return render(request, 'courses/quiz_form.html', {'quiz': quiz})
 
     def post(self, request, *args, **kwargs):
-        quiz = get_object_or_404(Quiz.objects.prefetch_related('questions__choices'), id=kwargs['quiz_id'])
+        quiz = get_object_or_404(Quiz.objects.prefetch_related('questions__choices'), pk=kwargs['pk'])
         
-        # FIX: Move score calculation logic into a model method for cleaner views.
+        # Unpack the tuple returned by the helper method correctly.
         score, _ = self.calculate_score(request.POST, quiz)
         
-        submission, created = QuizSubmission.objects.get_or_create(
-            student=request.user,
-            quiz=quiz,
-            defaults={'score': score}
+        submission, _ = QuizSubmission.objects.get_or_create(
+            student=request.user, quiz=quiz, defaults={'score': score}
         )
-
-        # FIX: Gamification logic should be in signals, not views.
-        # This logic is now handled by a post_save signal on QuizSubmission.
-        
-        return redirect('quiz_result', submission_id=submission.id)
+        return redirect('courses:quiz_result', pk=submission.pk)
     
     @staticmethod
     def calculate_score(post_data, quiz):
-        """Helper method to decouple score calculation from the view logic."""
+        """دالة مساعدة لفصل منطق حساب الدرجة."""
         correct_answers = 0
         questions = quiz.questions.all()
         total_questions = questions.count()
-
         for question in questions:
-            selected_choice_id = post_data.get(f'question_{question.id}')
+            selected_choice_id = post_data.get(f'question_{question.pk}')
             if selected_choice_id:
-                # This is more efficient than hitting the DB for each choice
                 correct_choice = next((c for c in question.choices.all() if c.is_correct), None)
                 if correct_choice and int(selected_choice_id) == correct_choice.id:
                     correct_answers += 1
-        
         score = (correct_answers / total_questions) * 100 if total_questions > 0 else 0
         return score, correct_answers
 
 
 class QuizResultView(LoginRequiredMixin, DetailView):
     """
-    FIX: Replaced function with a secure and efficient DetailView.
-    Displays the result of a quiz submission.
+    يعرض نتيجة اختبار معينة بأمان، مع حسابات لعرض المخطط الدائري.
     """
     model = QuizSubmission
     template_name = 'courses/quiz_result.html'
     context_object_name = 'submission'
-    pk_url_kwarg = 'submission_id'
+    pk_url_kwarg = 'pk'
 
     def get_queryset(self):
         """
-        CRITICAL FIX (Security): Ensures a user can ONLY see their own submissions.
-        The query is filtered by the logged-in user from the start.
+        إصلاح أمني حرج: يضمن أن المستخدم لا يمكنه رؤية إلا نتائجه الخاصة.
         """
         queryset = super().get_queryset()
         return queryset.filter(student=self.request.user)
     
     def get_context_data(self, **kwargs):
-        """Adds detailed performance breakdown to the context."""
+        """
+        يضيف تحليل الأداء والحسابات اللازمة للمخطط الدائري.
+        """
         context = super().get_context_data(**kwargs)
         submission = self.object
+        
         total_questions = submission.quiz.questions.count()
         correct_answers = round((submission.score / 100) * total_questions) if total_questions > 0 else 0
         
+        # Calculations for the SVG donut chart are done here, not in the template.
+        radius = 80
+        circumference = 2 * math.pi * radius
+        stroke_dashoffset = circumference * (1 - (submission.score / 100))
+
         context.update({
             'total_questions': total_questions,
             'correct_answers': correct_answers,
             'wrong_answers': total_questions - correct_answers,
+            'circumference': circumference,
+            'stroke_dashoffset': stroke_dashoffset,
         })
         return context

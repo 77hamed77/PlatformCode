@@ -35,6 +35,7 @@ class Course(models.Model):
         return self.title
 
     def get_lessons_count(self):
+        """يستخدم العلاقة المباشرة من الدرس للكفاءة."""
         return self.lessons.count()
 
 
@@ -55,11 +56,23 @@ class Module(models.Model):
 
 
 class Lesson(models.Model):
+    # --- NEW: Added to distinguish between lesson types ---
+    class ContentType(models.TextChoices):
+        TEXT = 'TEXT', 'محتوى نصي'
+        VIDEO = 'VIDEO', 'رابط فيديو'
+
     module = models.ForeignKey(Module, related_name='lessons', on_delete=models.CASCADE, verbose_name="الوحدة")
     course = models.ForeignKey(Course, related_name='lessons', on_delete=models.CASCADE, verbose_name="الكورس")
+    
     title = models.CharField("عنوان الدرس", max_length=200)
-    content = models.TextField("محتوى الدرس")
-    video_url = models.URLField("رابط الفيديو", blank=True)
+    content_type = models.CharField(
+        "نوع المحتوى",
+        max_length=10,
+        choices=ContentType.choices,
+        default=ContentType.TEXT
+    )
+    content = models.TextField("المحتوى النصي", blank=True, help_text="يستخدم إذا كان نوع المحتوى نصيًا.")
+    video_url = models.URLField("رابط الفيديو", blank=True, help_text="يستخدم إذا كان نوع المحتوى رابط فيديو.")
     order = models.PositiveIntegerField(default=0, db_index=True)
 
     class Meta:
@@ -69,12 +82,17 @@ class Lesson(models.Model):
         unique_together = ('module', 'title')
 
     def save(self, *args, **kwargs):
+        """يضمن تعيين الكورس تلقائيًا عند الحفظ."""
         if not self.course_id:
             self.course = self.module.course
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
+    
+    def is_video_lesson(self):
+        """دالة مساعدة للتحقق بسهولة في القوالب."""
+        return self.content_type == self.ContentType.VIDEO and self.video_url
 
 
 class Quiz(models.Model):
@@ -115,17 +133,14 @@ class Choice(models.Model):
         return self.text
     
     def clean(self):
-        if self.is_correct:
+        """يضمن وجود إجابة صحيحة واحدة فقط لكل سؤال."""
+        if self.is_correct and self.question and self.question.pk:
             other_correct_choices = Choice.objects.filter(
                 question=self.question, 
                 is_correct=True
             ).exclude(pk=self.pk)
             if other_correct_choices.exists():
                 raise ValidationError("لا يمكن وجود أكثر من إجابة صحيحة واحدة لهذا السؤال.")
-
-    def save(self, *args, **kwargs):
-        self.clean()
-        super().save(*args, **kwargs)
 
 
 class StudentProgress(models.Model):

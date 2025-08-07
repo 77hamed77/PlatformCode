@@ -1,0 +1,49 @@
+<!-- templates/courses/partials/quiz_result_card.html -->
+<div class="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+    <!-- 1. Result Header -->
+    <div class="p-8 text-center bg-{{ primary_color }}-500">
+        <div class="text-6xl mb-4">{{ message_icon }}</div>
+        <h1 class="text-3xl font-extrabold text-white">{{ message_title }}</h1>
+        <p class="mt-2 text-lg text-{{ primary_color }}-100">{{ message_subtitle }}</p>
+    </div>
+
+    <div class="p-8 space-y-8">
+        <!-- 2. Main Score Donut Chart -->
+        <div class="relative flex items-center justify-center">
+            <svg class="transform -rotate-90 w-48 h-48">
+                <circle cx="96" cy="96" r="80" stroke-width="24" stroke="currentColor" class="text-gray-200 dark:text-gray-700" fill="transparent" />
+                <circle cx="96" cy="96" r="80" stroke-width="24" stroke="currentColor" class="text-{{ primary_color }}-500" fill="transparent"
+                        
+                        <!-- CRITICAL FIX: Replaced complex calculations with simple variables -->
+                        stroke-dasharray="{{ circumference }}"
+                        stroke-dashoffset="{{ stroke_dashoffset }}"
+                        
+                        style="transition: stroke-dashoffset 1s ease-out;" />
+            </svg>
+            <div class="absolute flex flex-col items-center">
+                <span class="text-5xl font-bold text-gray-800 dark:text-white">{{ submission.score|floatformat:0 }}<span class="text-3xl">%</span></span>
+                <span class="text-sm text-gray-500 dark:text-gray-400">درجتك النهائية</span>
+            </div>
+        </div>
+        
+        <!-- 3. Performance Breakdown -->
+        <div>
+            <h2 class="text-lg font-semibold text-center mb-4 text-gray-700 dark:text-gray-300">تحليل الأداء</h2>
+            <div class="grid grid-cols-2 gap-4 text-center">
+                <div class="bg-green-50 dark:bg-green-900/50 p-4 rounded-xl"><p class="text-sm font-medium text-green-700 dark:text-green-300">إجابات صحيحة</p><p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ correct_answers }}</p></div>
+                <div class="bg-red-50 dark:bg-red-900/50 p-4 rounded-xl"><p class="text-sm font-medium text-red-700 dark:text-red-300">إجابات خاطئة</p><p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ wrong_answers }}</p></div>
+            </div>
+        </div>
+
+        <!-- 4. Next Steps / Call to Action -->
+        <div class="pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
+            <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300">الخطوات التالية</h2>
+            <div class="mt-4 flex flex-col sm:flex-row justify-center gap-4">
+                <a href="{% url 'courses:course_detail' submission.quiz.module.course.pk %}" class="w-full sm:w-auto flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">العودة إلى الكورس</a>
+                {% if submission.score < 80 %}
+                <a href="{% url 'courses:course_detail' submission.quiz.module.course.pk %}" class="w-full sm:w-auto flex items-center justify-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">مراجعة دروس الوحدة</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

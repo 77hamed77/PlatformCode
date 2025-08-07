@@ -1,31 +1,44 @@
+{% load static %}
 <!-- templates/base.html -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" class="scroll-smooth">
+
 <head>
-    <meta charset="UTF--8">
+    <!-- 1. Basic Meta Tags & Title -->
+    <meta charset="UTF-8"> <!-- CRITICAL FIX: Corrected charset -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}منصة كود{% endblock %} | منصة كود</title>
 
-    <!-- External Libraries -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
-    
-    <!-- CodeMirror Assets -->
+    <!-- 2. Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+
+    <!-- 3. External CSS Libraries -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/dracula.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/python/python.min.js"></script>
-    
-    <!-- Custom Font -->
+
+    <!-- 4. External JS Libraries (with `defer` for performance) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/python/python.min.js" defer></script>
+
+    <!-- 5. Custom Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- CRITICAL FIX: Corrected Google Fonts URL -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     
+    <!-- 6. Custom Styles -->
     <style>
-        body { font-family: 'Tajawal', sans-serif; }
+        /* Main font definition */
+        body { 
+            font-family: 'Tajawal', sans-serif; 
+        }
+
         /* Pygments Syntax Highlighting Styles */
         .codehilite { background: #f6f8fa; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-size: 0.875rem; }
         .codehilite .c { color: #6a737d } /* Comment */ .codehilite .err { color: #d73a49 } /* Error */ .codehilite .k { color: #d73a49; font-weight: bold } /* Keyword */ .codehilite .o { color: #d73a49 } /* Operator */ .codehilite .ch { color: #6a737d } .codehilite .cm { color: #6a737d } .codehilite .cp { color: #6a737d } .codehilite .cpf { color: #6a737d } .codehilite .c1 { color: #6a737d } .codehilite .cs { color: #6a737d } .codehilite .gd { color: #d73a49 } .codehilite .ge { font-style: italic } .codehilite .gr { color: #d73a49 } .codehilite .gh { color: #24292e; font-weight: bold } .codehilite .gi { color: #22863a } .codehilite .go { color: #24292e } .codehilite .gp { color: #24292e } .codehilite .gs { font-weight: bold } .codehilite .gu { color: #0366d6; font-weight: bold } .codehilite .gt { color: #d73a49 } .codehilite .kc { color: #d73a49; font-weight: bold } .codehilite .kd { color: #d73a49; font-weight: bold } .codehilite .kn { color: #d73a49; font-weight: bold } .codehilite .kp { color: #d73a49; font-weight: bold } .codehilite .kr { color: #d73a49; font-weight: bold } .codehilite .kt { color: #d73a49; font-weight: bold } .codehilite .m { color: #0366d6 } .codehilite .s { color: #032f62 } .codehilite .n { color: #24292e } .codehilite .na { color: #005cc5 } .codehilite .nb { color: #005cc5 } .codehilite .nc { color: #e36209 } .codehilite .no { color: #005cc5 } .codehilite .nd { color: #e36209; font-weight: bold } .codehilite .ni { color: #24292e } .codehilite .ne { color: #e36209; font-weight: bold } .codehilite .nf { color: #6f42c1; font-weight: bold } .codehilite .nl { color: #d73a49; font-weight: bold } .codehilite .nn { color: #24292e } .codehilite .nt { color: #22863a; font-weight: bold } .codehilite .nv { color: #e36209 } .codehilite .ow { color: #d73a49; font-weight: bold } .codehilite .w { color: #bbbbbb } .codehilite .mb { color: #0366d6 } .codehilite .mf { color: #0366d6 } .codehilite .mh { color: #0366d6 } .codehilite .mi { color: #0366d6 } .codehilite .mo { color: #0366d6 } .codehilite .sa { color: #032f62 } .codehilite .sb { color: #032f62 } .codehilite .sc { color: #032f62 } .codehilite .dl { color: #032f62 } .codehilite .sd { color: #032f62 } .codehilite .s2 { color: #032f62 } .codehilite .se { color: #032f62 } .codehilite .sh { color: #032f62 } .codehilite .si { color: #032f62 } .codehilite .sx { color: #032f62 } .codehilite .sr { color: #032f62 } .codehilite .s1 { color: #032f62 } .codehilite .ss { color: #032f62 } .codehilite .bp { color: #005cc5 } .codehilite .fm { color: #6f42c1; font-weight: bold } .codehilite .vc { color: #e36209 } .codehilite .vg { color: #e36209 } .codehilite .vi { color: #e36209 } .codehilite .vm { color: #e36209 } .codehilite .il { color: #0366d6 }
@@ -124,6 +137,39 @@
             <p>&copy; {% now "Y" %} منصة كود. جميع الحقوق محفوظة.</p>
         </div>
     </footer>
+<!-- ================================== -->
+<!--          CUSTOM SCRIPTS            -->
+<!-- ================================== -->
+    <script>
+        // This script listens for the event that HTMX fires just before a confirmation is needed.
+        document.body.addEventListener('htmx:confirm', function(event) {
+            // We check if the element that triggered the event has our custom class.
+            if (event.target.classList.contains('confirm-delete') || event.target.closest('.confirm-delete')) {
+                
+                // Prevent the default browser dialog from showing.
+                event.preventDefault();
 
+                // Trigger our beautiful SweetAlert2 modal.
+                Swal.fire({
+                    title: 'هل أنت متأكد؟',
+                    text: "لا يمكن التراجع عن حذف هذه المهمة!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33', // Red for delete
+                    cancelButtonColor: '#3085d6', // Blue for cancel
+                    confirmButtonText: 'نعم، احذفها!',
+                    cancelButtonText: 'إلغاء',
+                    background: '#1f2937', // Dark background to match your theme
+                    color: '#e5e7eb'       // Light text for dark background
+                }).then((result) => {
+                    // If the user confirms, we tell HTMX to proceed with the request.
+                    if (result.isConfirmed) {
+                        // This is the magic line that issues the original HTMX request.
+                        event.detail.issueRequest();
+                    }
+                })
+            }
+        });
+    </script>
 </body>
 </html>

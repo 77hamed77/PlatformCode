@@ -1,3 +1,4 @@
+<!-- templates/dashboard/dashboard.html -->
 {% extends 'base.html' %}
 {% load markdown_extras widget_tweaks %}
 
@@ -5,37 +6,34 @@
 
 {% block content %}
 <div class="space-y-8">
-
-    <!-- 1. Welcome Header -->
+    <!-- ... Welcome Header and Stat Cards ... -->
     <div>
         <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">أهلاً بعودتك، {{ user.username }}!</h1>
         <p class="mt-2 text-md text-gray-600 dark:text-gray-400">لنجعل هذا اليوم يومًا مثمرًا. إليك ملخص رحلتك حتى الآن.</p>
     </div>
-
-    <!-- 2. Stat Cards Section -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-lg"><p class="text-sm font-medium uppercase tracking-wider">نقاطك</p><p class="text-3xl font-extrabold">{{ user.score }}</p></div>
         <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg"><p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">المسائل المحلولة</p><p class="text-3xl font-extrabold text-gray-900 dark:text-white">{{ stats.solved_problems }}</p></div>
         <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg"><p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">الدروس المكتملة</p><p class="text-3xl font-extrabold text-gray-900 dark:text-white">{{ stats.completed_lessons }}</p></div>
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg flex flex-col justify-center items-center"><a href="{% url 'leaderboard' %}" class="text-center hover:scale-110 transition-transform"><p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ترتيبك</p><p class="text-3xl font-extrabold text-gray-900 dark:text-white">#{{ stats.rank|default:'?' }}</p></a></div>
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg flex flex-col justify-center items-center"><a href="{% url 'accounts:leaderboard' %}" class="text-center hover:scale-110 transition-transform"><p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ترتيبك</p><p class="text-3xl font-extrabold text-gray-900 dark:text-white">#{{ stats.rank|default:'?' }}</p></a></div>
     </div>
     
-    <!-- 3. Main Grid -->
+    <!-- Main Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div class="lg:col-span-2 space-y-8">
-            <!-- In Progress Courses -->
+            <!-- ... In Progress Courses ... -->
             <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
                 <h2 class="text-xl font-bold mb-4">تابع من حيث توقفت</h2>
                 <div class="space-y-4">
                     {% for item in in_progress_courses_with_progress %}
-                    <a href="{% url 'course_detail' item.course.id %}" class="block p-4 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <a href="{% url 'courses:course_detail' item.course.pk %}" class="block p-4 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                         <p class="font-semibold text-indigo-600 dark:text-indigo-400">{{ item.course.title }}</p>
                         <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-2">
                             <div class="bg-indigo-600 h-2.5 rounded-full" style="width: {{ item.percentage }}%"></div>
                         </div>
                     </a>
                     {% empty %}
-                    <p class="text-gray-500 dark:text-gray-400">لم تبدأ أي كورس بعد. <a href="{% url 'path_list' %}" class="text-indigo-500 hover:underline">ابدأ الآن!</a></p>
+                    <p class="text-gray-500 dark:text-gray-400">لم تبدأ أي كورس بعد. <a href="{% url 'courses:path_list' %}" class="text-indigo-500 hover:underline">ابدأ الآن!</a></p>
                     {% endfor %}
                 </div>
             </div>
@@ -44,7 +42,7 @@
             <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold">📓 مذكراتك وأفكارك</h2>
-                    <a href="{% url 'note_create' %}" class="bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors text-sm">+ مذكرة جديدة</a>
+                    <a href="{% url 'dashboard:note_create' %}" class="bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors text-sm">+ مذكرة جديدة</a>
                 </div>
                 <div class="space-y-4">
                     {% for note in notes %}
@@ -53,8 +51,13 @@
                         <div class="prose prose-sm max-w-none text-gray-600 dark:text-gray-400 my-2">
                             {{ note.get_snippet|markdownify }}
                         </div>
-                        <div class="flex justify-end gap-2 mt-2">
-                            <a href="{% url 'note_update' note.id %}" class="text-sm text-indigo-600 hover:underline">تعديل</a>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-xs text-gray-400">آخر تحديث: {{ note.updated_at|date:"Y-m-d" }}</span>
+                            <div class="flex gap-4">
+                                <!-- CRITICAL FIX: Added the delete button for notes -->
+                                <a href="{% url 'dashboard:note_update' note.pk %}" class="text-sm text-indigo-500 hover:underline">تعديل</a>
+                                <a href="{% url 'dashboard:note_delete' note.pk %}" class="text-sm text-red-500 hover:underline">حذف</a>
+                            </div>
                         </div>
                     </div>
                     {% empty %}
@@ -65,33 +68,30 @@
         </div>
 
         <div class="space-y-8">
-            <!-- Task Manager with HTMX -->
+            <!-- ... Task Manager and Last Solved Problems ... -->
             <div id="task-manager" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
                 <h2 class="text-xl font-bold mb-4">📝 مهام اليوم</h2>
-                <form hx-post="{% url 'task_create' %}" hx-target="#task-list" hx-swap="beforeend" hx-on::after-request="this.reset()">
+                <form hx-post="{% url 'dashboard:task_create' %}" hx-target="#task-list" hx-swap="beforeend" hx-on::after-request="this.reset()">
                     {% csrf_token %}
                     <div class="flex gap-2 mb-4">
                         {% render_field task_form.title class="flex-grow p-2 border dark:border-gray-600 bg-transparent rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="أضف مهمة جديدة..." %}
                         <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-lg hover:bg-indigo-700 transition-colors">إضافة</button>
                     </div>
                 </form>
-                
                 <div id="task-list" class="space-y-3 max-h-60 overflow-y-auto pr-2">
-                    {% include 'dashboard/partials/task_list.html' %}
+                    {% include 'dashboard/partials/task_list.html' with tasks=tasks %}
                 </div>
             </div>
-
-            <!-- Last Solved Problems -->
              <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
                 <h2 class="text-xl font-bold mb-4">آخر إنجازاتك</h2>
                 <div class="space-y-3">
                      {% for submission in last_solved_problems %}
-                        <a href="{% url 'problem_detail' submission.problem.id %}" class="flex items-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700/50">
+                        <a href="{% url 'problems:problem_detail' submission.problem.pk %}" class="flex items-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700/50">
                             <span class="text-green-500 mr-2 rtl:ml-2">✅</span>
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ submission.problem.title }}</span>
                         </a>
                      {% empty %}
-                        <p class="text-gray-500 dark:text-gray-400 text-sm">لم تقم بحل أي مسألة بعد. <a href="{% url 'problem_list' %}" class="text-indigo-500 hover:underline">ابدأ التحدي!</a></p>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm">لم تقم بحل أي مسألة بعد. <a href="{% url 'problems:problem_list' %}" class="text-indigo-500 hover:underline">ابدأ التحدي!</a></p>
                      {% endfor %}
                 </div>
             </div>

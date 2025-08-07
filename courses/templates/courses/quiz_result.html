@@ -5,90 +5,23 @@
 {% block content %}
 
 {% comment %}
-    We define the color scheme and messages based on the score.
-    This makes the template cleaner and easier to read.
+    CRITICAL FIX: Replaced the non-existent `set` tag with Django's `with` tag.
+    The `with` tag creates a context block. We define the variables for each
+    score range and include the display logic within that block.
 {% endcomment %}
+
 {% if submission.score >= 80 %}
-    {% set primary_color = 'green' %}
-    {% set secondary_color = 'green' %}
-    {% set message_icon = '🎉' %}
-    {% set message_title = 'أداء استثنائي!' %}
-    {% set message_subtitle = 'لقد أتقنت محتوى هذه الوحدة. عمل رائع!' %}
+    {% with primary_color='green' message_icon='🎉' message_title='أداء استثنائي!' message_subtitle='لقد أتقنت محتوى هذه الوحدة. عمل رائع!' %}
+        {% include 'courses/partials/quiz_result_card.html' %}
+    {% endwith %}
 {% elif submission.score >= 50 %}
-    {% set primary_color = 'yellow' %}
-    {% set secondary_color = 'yellow' %}
-    {% set message_icon = '👍' %}
-    {% set message_title = 'عمل جيد!' %}
-    {% set message_subtitle = 'لديك فهم جيد للمادة، مع مجال بسيط للتحسين.' %}
+    {% with primary_color='yellow' message_icon='👍' message_title='عمل جيد!' message_subtitle='لديك فهم جيد للمادة، مع مجال بسيط للتحسين.' %}
+        {% include 'courses/partials/quiz_result_card.html' %}
+    {% endwith %}
 {% else %}
-    {% set primary_color = 'red' %}
-    {% set secondary_color = 'red' %}
-    {% set message_icon = '📖' %}
-    {% set message_title = 'فرصة للتعلم' %}
-    {% set message_subtitle = 'لا تقلق، كل خطأ هو فرصة للمراجعة والتحسن.' %}
+    {% with primary_color='red' message_icon='📖' message_title='فرصة للتعلم' message_subtitle='لا تقلق، كل خطأ هو فرصة للمراجعة والتحسن.' %}
+        {% include 'courses/partials/quiz_result_card.html' %}
+    {% endwith %}
 {% endif %}
 
-<div class="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
-    <!-- 1. Result Header -->
-    <div class="p-8 text-center bg-{{ primary_color }}-500">
-        <div class="text-6xl mb-4">{{ message_icon }}</div>
-        <h1 class="text-3xl font-extrabold text-white">{{ message_title }}</h1>
-        <p class="mt-2 text-lg text-{{ primary_color }}-100">{{ message_subtitle }}</p>
-    </div>
-
-    <div class="p-8 space-y-8">
-        <!-- 2. Main Score Donut Chart -->
-        <div class="relative flex items-center justify-center">
-            <svg class="transform -rotate-90 w-48 h-48">
-                <circle cx="96" cy="96" r="80" stroke-width="24" stroke="currentColor" class="text-gray-200 dark:text-gray-700" fill="transparent" />
-                <circle cx="96" cy="96" r="80" stroke-width="24" stroke="currentColor" class="text-{{ primary_color }}-500" fill="transparent"
-                        stroke-dasharray="{{ 2 * 3.14159 * 80 }}"
-                        stroke-dashoffset="{{ 2 * 3.14159 * 80 * (1 - submission.score / 100) }}"
-                        style="transition: stroke-dashoffset 1s ease-out;" />
-            </svg>
-            <div class="absolute flex flex-col items-center">
-                <span class="text-5xl font-bold text-gray-800 dark:text-white">{{ submission.score|floatformat:0 }}<span class="text-3xl">%</span></span>
-                <span class="text-sm text-gray-500 dark:text-gray-400">درجتك النهائية</span>
-            </div>
-        </div>
-        
-        <!-- 3. Performance Breakdown -->
-        <div>
-            <h2 class="text-lg font-semibold text-center mb-4 text-gray-700 dark:text-gray-300">تحليل الأداء</h2>
-            <div class="grid grid-cols-2 gap-4 text-center">
-                <!-- Correct Answers -->
-                <div class="bg-green-50 dark:bg-green-900/50 p-4 rounded-xl">
-                    <p class="text-sm font-medium text-green-700 dark:text-green-300">إجابات صحيحة</p>
-                    <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ correct_answers }}</p>
-                </div>
-                <!-- Wrong Answers -->
-                <div class="bg-red-50 dark:bg-red-900/50 p-4 rounded-xl">
-                    <p class="text-sm font-medium text-red-700 dark:text-red-300">إجابات خاطئة</p>
-                    <p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ wrong_answers }}</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. Next Steps / Call to Action -->
-        <div class="pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
-            <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300">الخطوات التالية</h2>
-            <div class="mt-4 flex flex-col sm:flex-row justify-center gap-4">
-                
-                <!-- This button shows for everyone -->
-                <a href="{% url 'course_detail' submission.quiz.module.course.id %}" 
-                   class="w-full sm:w-auto flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
-                   العودة إلى الكورس
-                </a>
-                
-                <!-- This button shows only if score is low -->
-                {% if submission.score < 80 %}
-                <a href="{% url 'course_detail' submission.quiz.module.course.id %}" {# You can later link this to the first lesson of the module #}
-                   class="w-full sm:w-auto flex items-center justify-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                   مراجعة دروس الوحدة
-                </a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
