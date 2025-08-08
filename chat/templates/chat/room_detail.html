@@ -1,0 +1,149 @@
+<!-- templates/chat/room_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}غرفة نقاش: {{ room.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 h-[80vh]">
+    
+    <!-- Main Chat Area -->
+    <div class="flex-grow flex flex-col">
+        <h1 class="text-2xl font-bold mb-4 border-b dark:border-gray-700 pb-2">غرفة: {{ room.name }}</h1>
+        <div id="chat-log-wrapper" class="relative flex-grow">
+            <div id="chat-log" class="absolute inset-0 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg overflow-y-auto space-y-4">
+                <!-- CRITICAL FIX: Loop once and use the partial template -->
+                {% for msg in messages %}
+                    {% include 'chat/partials/chat_message.html' with msg=msg %}
+                {% endfor %}
+            </div>
+            <div id="typing-indicator" class="absolute bottom-0 left-0 p-4 text-sm text-gray-500 italic transition-opacity duration-300 opacity-0"></div>
+        </div>
+        <form id="chat-form" class="mt-4 flex gap-2">
+            <input id="chat-message-input" type="text" autocomplete="off" placeholder="اكتب رسالتك هنا..." class="flex-grow p-2 border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 focus:ring-indigo-500 focus:border-indigo-500">
+            <button id="chat-message-submit" type="submit" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">إرسال</button>
+        </form>
+    </div>
+
+    <!-- Online Users List -->
+    <div class="w-full md:w-64 flex-shrink-0 bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 flex flex-col">
+        <h2 class="text-lg font-bold mb-4 border-b dark:border-gray-700 pb-2">متصل الآن (<span id="online-users-count">0</span>)</h2>
+        <div id="online-users-list" class="overflow-y-auto space-y-2"></div>
+    </div>
+</div>
+
+{{ room.slug|json_script:"room-slug" }}
+{{ request.user.username|json_script:"user-username" }}
+{{ request.user.is_moderator|json_script:"user-is-moderator" }}
+
+<script>
+    const roomSlug = JSON.parse(document.getElementById('room-slug').textContent);
+    const currentUser = JSON.parse(document.getElementById('user-username').textContent);
+    const isModerator = JSON.parse(document.getElementById('user-is-moderator').textContent);
+    const chatLog = document.querySelector('#chat-log');
+    const onlineUsersList = document.querySelector('#online-users-list');
+    const onlineUsersCount = document.querySelector('#online-users-count');
+    const messageInput = document.querySelector('#chat-message-input');
+    const typingIndicator = document.querySelector('#typing-indicator');
+
+    const chatSocket = new WebSocket('ws://' + window.location.host + '/ws/chat/' + roomSlug + '/');
+
+    let typingTimer;
+    let isTyping = false;
+    const typingUsers = new Set();
+
+    // --- Main WebSocket Event Listener ---
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        
+        switch (data.type) {
+            case 'chat_message':
+                typingUsers.delete(data.username);
+                updateTypingIndicator();
+                appendChatMessage(data);
+                break;
+            case 'online_user_list':
+                updateOnlineUsers(data.users);
+                break;
+            case 'user_typing':
+                if (data.is_typing) {
+                    typingUsers.add(data.username);
+                } else {
+                    typingUsers.delete(data.username);
+                }
+                updateTypingIndicator();
+                break;
+            // You can add a 'message_deleted' type here for a more advanced implementation
+        }
+    };
+
+    // --- Sending Messages and Typing Indicators ---
+    document.querySelector('#chat-form').onsubmit = function(e) {
+        e.preventDefault();
+        const message = messageInput.value;
+        if (message.trim() === '') return;
+        chatSocket.send(JSON.stringify({ type: 'chat_message', 'message': message }));
+        messageInput.value = '';
+    };
+
+    messageInput.addEventListener('input', () => {
+        if (!isTyping) {
+            isTyping = true;
+            chatSocket.send(JSON.stringify({ type: 'typing', is_typing: true }));
+        }
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            isTyping = false;
+            chatSocket.send(JSON.stringify({ type: 'typing', is_typing: false }));
+        }, 2000);
+    });
+
+    // --- DOM Manipulation Functions ---
+    function appendChatMessage(data) {
+        // This function will now receive the full HTML for the message from the backend
+        // This is a simpler approach than rebuilding the complex logic in JS.
+        // We will need to update the consumer to send back the rendered partial.
+        const messageId = data.data.id; // Assuming the backend sends the message ID
+        const messageHtml = data.html; // Assuming the backend sends rendered HTML
+        
+        const existingMessage = document.getElementById(`message-${messageId}`);
+        if (existingMessage) {
+            existingMessage.outerHTML = messageHtml;
+        } else {
+            chatLog.insertAdjacentHTML('beforeend', messageHtml);
+        }
+        
+        scrollToBottom();
+    }
+
+    function updateOnlineUsers(users) {
+        onlineUsersList.innerHTML = '';
+        onlineUsersCount.innerText = users.length;
+        users.forEach(username => {
+            const userElement = document.createElement('div');
+            userElement.className = 'flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300';
+            userElement.innerHTML = `<span class="w-2 h-2 bg-green-500 rounded-full"></span><span>${escapeHtml(username)}</span>`;
+            onlineUsersList.appendChild(userElement);
+        });
+    }
+
+    function updateTypingIndicator() {
+        if (typingUsers.size === 0) {
+            typingIndicator.classList.add('opacity-0');
+            return;
+        }
+        typingIndicator.classList.remove('opacity-0');
+        const users = Array.from(typingUsers);
+        if (users.length === 1) {
+            typingIndicator.textContent = `${users[0]} يكتب الآن...`;
+        } else if (users.length === 2) {
+            typingIndicator.textContent = `${users[0]} و ${users[1]} يكتبان الآن...`;
+        } else {
+            typingIndicator.textContent = `عدة أشخاص يكتبون الآن...`;
+        }
+    }
+
+    // --- Utility Functions ---
+    function scrollToBottom() { chatLog.scrollTop = chatLog.scrollHeight; }
+    function escapeHtml(unsafe) { return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+</script>
+{% endblock %}

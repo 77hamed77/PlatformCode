@@ -1,73 +1,65 @@
 # accounts/views.py
 
-# 1. Imports are grouped and organized at the top
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import F, Window
 from django.db.models.functions import Rank
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, TemplateView
-from .forms import CustomUserCreationForm
+from django.views.generic import CreateView, TemplateView, UpdateView
+
+from .forms import CustomUserCreationForm, ProfileUpdateForm
 from .models import CustomUser
 
 
-# 2. Using a Class-Based View for SignUp, which is already good practice.
 class SignUpView(CreateView):
-    """
-    Handles new user registration.
-    Uses a generic CreateView for clean and maintainable code.
-    """
+    """Handles new user registration."""
     form_class = CustomUserCreationForm
     success_url = reverse_lazy('login')
     template_name = 'accounts/signup.html'
 
 
-# 3. Refactoring leaderboard_view into a more powerful Class-Based View
 class LeaderboardView(TemplateView):
-    """
-    Displays the leaderboard with top students and the current user's rank.
-    - Uses TemplateView for structured context management.
-    - Optimized database queries for performance.
-    """
+    """Displays the leaderboard with top students and the current user's rank."""
     template_name = 'accounts/leaderboard.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # The query is executed only ONCE here.
         students_with_rank = CustomUser.objects.annotate(
-            rank=Window(
-                expression=Rank(),
-                order_by=F('score').desc()
-            )
+            rank=Window(expression=Rank(), order_by=F('score').desc())
         ).order_by('rank')
 
-        # Convert the QuerySet to a list to avoid further database hits.
-        ranked_list = list(students_with_rank[:20]) # We only care about the top 20
-
-        # Separate the top 3 and the rest using Python slicing (much faster).
-        top_three = ranked_list[:3]
-        rest_of_students = ranked_list[3:]
+        ranked_list = list(students_with_rank[:20])
+        context['top_three'] = ranked_list[:3]
+        context['rest_of_students'] = ranked_list[3:]
 
         current_user_rank = None
-        # Check for the current user's rank efficiently
         if self.request.user.is_authenticated:
-            # 4. CRITICAL FIX: Find the user in the already-fetched list.
-            # This avoids a second database query.
+            # Find the user in the already-fetched list first
             for student in ranked_list:
                 if student.id == self.request.user.id:
                     current_user_rank = student
-                    break # Stop searching once found
+                    break
             
-            # Fallback: If the user is not in the top 20, get their rank with a specific query.
+            # If not in the top 20, fetch their specific rank
             if not current_user_rank:
                 user_rank_obj = students_with_rank.filter(id=self.request.user.id).first()
                 if user_rank_obj:
                     current_user_rank = user_rank_obj
 
-        context.update({
-            'top_three': top_three,
-            'rest_of_students': rest_of_students,
-            'current_user_rank': current_user_rank,
-        })
-        
+        context['current_user_rank'] = current_user_rank
         return context
+
+
+class ProfileUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+    """
+    Allows authenticated users to update their own profile information.
+    """
+    model = CustomUser
+    form_class = ProfileUpdateForm
+    template_name = 'accounts/profile.html'
+    success_url = reverse_lazy('accounts:profile')
+    success_message = "تم تحديث ملفك الشخصي بنجاح!"
+
+    def get_object(self, queryset=None):
+        """Ensures the user can only edit their own profile."""
+        return self.request.user

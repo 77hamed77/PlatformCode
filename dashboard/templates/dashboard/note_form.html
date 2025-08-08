@@ -1,21 +1,13 @@
 <!-- templates/dashboard/note_form.html -->
 {% extends 'base.html' %}
-{% load widget_tweaks %}
+{% load widget_tweaks markdown_extras %}
 
 {% block title %}{% if form.instance.pk %}تعديل مذكرة{% else %}مذكرة جديدة{% endif %}{% endblock %}
 
 {% block content %}
 
-<div x-data="{ 
-        content: `{{ form.content.value|default:''|escapejs }}`,
-        get renderedMarkdown() {
-            if (this.content.trim() === '') {
-                return '<p class_=\"text-gray-400\">المعاينة الحية ستظهر هنا...</p>';
-            }
-            return DOMPurify.sanitize(marked.parse(this.content));
-        }
-    }" 
-    class="max-w-7xl mx-auto">
+<!-- CRITICAL FIX: The Alpine.js logic is now defined in a script tag, not in x-data -->
+<div x-data="noteEditor({ initialContent: `{{ form.content.value|default:''|escapejs }}` })" class="max-w-7xl mx-auto">
 
     <form method="post" class="space-y-6">
         {% csrf_token %}
@@ -26,24 +18,17 @@
                 {% if form.instance.pk %}تعديل المذكرة{% else %}مذكرة جديدة{% endif %}
             </h1>
             <div class="flex items-center gap-3">
-                <!-- CRITICAL FIX: Added namespace to URL -->
-                <a href="{% url 'dashboard:dashboard' %}" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-                    إلغاء
-                </a>
-                <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg text-sm hover:bg-indigo-700 transition-colors shadow-lg flex items-center">
+                <a href="{% url 'dashboard:dashboard' %}" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600">إلغاء</a>
+                <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg text-sm hover:bg-indigo-700 shadow-lg flex items-center">
                     <svg class="w-5 h-5 ml-2 rtl:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
                     <span>حفظ المذكرة</span>
                 </button>
             </div>
         </div>
 
-        {% if form.non_field_errors %}...{% endif %}
-
         <!-- Title Input Field -->
         <div>
             {% if form.title.errors %}{% for error in form.title.errors %}<p class="text-sm font-medium text-red-600 mb-1">{{ error }}</p>{% endfor %}{% endif %}
-            
-            <!-- CRITICAL FIX: Replaced invalid class+ syntax with standard Django if/else -->
             {% if form.title.errors %}
                 {% render_field form.title class="w-full text-2xl font-bold p-3 bg-white dark:bg-gray-800 border-2 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 border-red-500" placeholder="عنوان مذكرتك المميزة..." %}
             {% else %}
@@ -53,6 +38,7 @@
 
         <!-- Markdown Editor and Live Preview -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-0.5 bg-gray-300 dark:bg-gray-600 rounded-lg overflow-hidden shadow-xl">
+            <!-- Left: Textarea for Markdown Input -->
             <div class="bg-white dark:bg-gray-800">
                 {% if form.content.errors %}{% for error in form.content.errors %}<p class="text-sm font-medium text-red-600 p-4 pb-0">{{ error }}</p>{% endfor %}{% endif %}
                 <textarea x-model="content"
@@ -61,12 +47,42 @@
                           class="w-full h-96 lg:h-[60vh] p-4 resize-none border-none focus:ring-0 font-mono text-sm bg-transparent dark:text-gray-200 {% if form.content.errors %} ring-2 ring-red-500 {% endif %}"
                           placeholder="ابدأ بالكتابة... # عنوان رئيسي ... *نص مائل* ... `كود`">{{ form.content.value|default:'' }}</textarea>
             </div>
+            
+            <!-- Right: Live Preview -->
             <div class="hidden lg:block bg-gray-50 dark:bg-gray-900/50 p-4 h-96 lg:h-[60vh] overflow-y-auto">
-                <div x-html="renderedMarkdown" class="prose prose-sm dark:prose-invert max-w-none"></div>
+                <div x-html="renderedMarkdown" class="prose prose-sm dark:prose-invert max-w-none">
+                    <!-- Live preview will be rendered here -->
+                </div>
             </div>
         </div>
 
-        <div class="text-xs text-gray-500 dark:text-gray-400 text-center">...</div>
+        <!-- Markdown Helper Bar -->
+        <div class="text-xs text-gray-500 dark:text-gray-400 text-center">
+            ✨ تدعم هذه المساحة تنسيق <a href="https://www.markdownguide.org/basic-syntax/" target="_blank" class="text-indigo-500 hover:underline">Markdown</a>.
+        </div>
     </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('noteEditor', (config) => ({
+            content: config.initialContent,
+            get renderedMarkdown() {
+                if (this.content.trim() === '') {
+                    // CRITICAL FIX: Return a styled placeholder instead of text to avoid 'undefined'
+                    return `<div class="flex items-center justify-center h-full">
+                                <div class="text-center text-gray-400">
+                                    <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                                    <p class="mt-2 font-medium">المعاينة الحية ستظهر هنا</p>
+                                </div>
+                            </div>`;
+                }
+                // Sanitize the HTML to prevent XSS attacks
+                return DOMPurify.sanitize(marked.parse(this.content));
+            }
+        }));
+    });
+</script>
 {% endblock %}

@@ -1,0 +1,19 @@
+<!-- chat/templates/chat/partials/chat_message.html -->
+<div id="message-{{ msg.pk }}" class="chat-message-item group">
+    {% if msg.is_deleted %}
+        <span class="text-gray-500 italic">{{ msg.content }}</span>
+    {% else %}
+        <span class="font-bold text-indigo-500">{{ msg.author.username }}:</span>
+        <span class="text-gray-800 dark:text-gray-200">{{ msg.content }}</span>
+        <!-- زر الحذف يظهر للمشرفين -->
+        {% if request.user.is_moderator or request.user == msg.author %}
+        <form hx-post="{% url 'chat:delete_message' msg.pk %}"
+              hx-target="#message-{{ msg.pk }}"
+              hx-swap="outerHTML"
+              class="inline-block opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+            {% csrf_token %}
+            <button type="submit" class="text-red-500 text-xs">حذف</button>
+        </form>
+        {% endif %}
+    {% endif %}
+</div>

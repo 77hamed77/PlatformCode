@@ -3,6 +3,7 @@
 from django.urls import path
 # 1. FIX: Import the Class-Based Views we created, not the old functions.
 from .views import SignUpView, LeaderboardView
+from .views import ProfileUpdateView
 
 app_name = 'accounts' # BEST PRACTICE: Add an app namespace for clarity
 
@@ -11,4 +12,6 @@ urlpatterns = [
     
     # 2. FIX: Use the Class-Based View with .as_view()
     path('leaderboard/', LeaderboardView.as_view(), name='leaderboard'),
+    path('profile/', ProfileUpdateView.as_view(), name='profile'),
+
 ]

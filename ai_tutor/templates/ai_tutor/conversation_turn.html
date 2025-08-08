@@ -1,0 +1,21 @@
+<!-- templates/ai_tutor/partials/conversation_turn.html -->
+{% load markdown_extras %}
+
+<!-- يعرض رسالة المستخدم -->
+<div class="flex justify-end mb-4">
+    <div class="max-w-xl px-4 py-2 rounded-xl shadow bg-indigo-600 text-white">
+        {{ user_message }}
+    </div>
+</div>
+
+<!-- يعرض استجابة الذكاء الاصطناعي -->
+<div class="flex justify-start mb-4">
+    <div class="max-w-xl px-4 py-2 rounded-xl shadow bg-white dark:bg-gray-700">
+        <div class="prose prose-sm dark:prose-invert max-w-none">
+            {{ ai_message|markdownify }}
+        </div>
+    </div>
+</div>
+
+<!-- تحديث مخفي: يقوم بتحديث معرف المحادثة في النموذج الرئيسي باستخدام HTMX OOB Swap -->
+<input hx-swap-oob="true" type="hidden" name="conversation_id" id="conversation_id" value="{{ conversation_id }}">

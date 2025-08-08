@@ -1,0 +1,17 @@
+<!-- ai_tutor/templates/ai_tutor/partials/chat_bubble.html -->
+{% load markdown_extras %}
+
+<div class="flex {% if is_ai %} justify-start {% else %} justify-end {% endif %} mb-4">
+    <div class="max-w-xl px-4 py-2 rounded-xl shadow
+        {% if not is_ai %}
+            bg-indigo-600 text-white
+        {% else %}
+            bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200
+        {% endif %}">
+        
+        <div class="prose prose-sm dark:prose-invert max-w-none prose-p:my-2 prose-pre:my-2">
+            {{ content|markdownify }}
+        </div>
+
+    </div>
+</div>

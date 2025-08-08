@@ -3,9 +3,33 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
+from django.templatetags.static import static
 
 class CustomUser(AbstractUser):
+    """
+    Extends the default Django User model.
+    This model is the central point for all user-related data.
+    """
+    # --- Profile & Personalization ---
+    AVATAR_CHOICES = (
+        ('m1', 'ذكر 1'), ('m2', 'ذكر 2'), ('m3', 'ذكر 3'),
+        ('f1', 'أنثى 1'), ('f2', 'أنثى 2'), ('f3', 'أنثى 3'),
+    )
+    avatar = models.CharField(
+        "الصورة الرمزية",
+        max_length=2,
+        choices=AVATAR_CHOICES,
+        default='m1'
+    )
+
+    # --- Role Management ---
+    is_moderator = models.BooleanField(
+        "مشرف",
+        default=False,
+        help_text="يحدد ما إذا كان يمكن للمستخدم الإشراف على المحتوى مثل غرف النقاش."
+    )
+    
+    # --- Academic Information ---
     academic_year = models.PositiveIntegerField(
         verbose_name="السنة الدراسية",
         validators=[MinValueValidator(1), MaxValueValidator(6)],
@@ -19,6 +43,8 @@ class CustomUser(AbstractUser):
         blank=True,
         help_text="المسار التعليمي المفضل للطالب، مثل (تطوير الويب)."
     )
+
+    # --- Gamification ---
     score = models.PositiveIntegerField(
         verbose_name="النقاط",
         default=0,
@@ -34,9 +60,11 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
+    # --- Helper Methods ---
+    def get_avatar_url(self):
+        """Returns the static path to the user's chosen avatar."""
+        return static(f'images/avatars/{self.avatar}.jpg')
+
     def get_solved_problems_count(self):
-        """
-        Efficiently counts the number of unique problems solved by the user.
-        Uses the correct related_name 'submissions'.
-        """
+        """Efficiently counts the number of unique problems solved by the user."""
         return self.submissions.filter(status='Correct').values('problem').distinct().count()

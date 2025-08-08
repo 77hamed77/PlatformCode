@@ -1,0 +1,44 @@
+<!-- templates/gamification/badge_list.html -->
+{% extends 'base.html' %}
+
+{% block title %}قائمة الشارات{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white sm:text-5xl">
+            🏅 الإنجازات والشارات
+        </h1>
+        <p class="mt-4 max-w-2xl mx-auto text-xl text-gray-500 dark:text-gray-400">
+            أكمل التحديات واجمع الشارات لتثبت مهاراتك.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for badge in badges %}
+            <div class="border rounded-xl p-4 text-center transition-all duration-300
+                {% if badge.id in earned_badge_ids %}
+                    border-amber-400 bg-amber-50 dark:bg-amber-900/50 shadow-lg
+                {% else %}
+                    border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800
+                {% endif %}">
+                
+                <div class="text-6xl mx-auto {% if badge.id not in earned_badge_ids %}grayscale opacity-50{% endif %}">
+                    {{ badge.icon }}
+                </div>
+                
+                <h2 class="mt-4 font-bold text-gray-900 dark:text-white">{{ badge.title }}</h2>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ badge.description }}</p>
+
+                {% if badge.id in earned_badge_ids %}
+                    <div class="mt-4 text-xs font-bold text-green-600 dark:text-green-400">
+                        ✓ تم الحصول عليها
+                    </div>
+                {% endif %}
+            </div>
+        {% empty %}
+            <p class="col-span-full text-center text-gray-500">سيتم إضافة الشارات قريبًا!</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

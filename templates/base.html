@@ -1,11 +1,10 @@
 {% load static %}
-<!-- templates/base.html -->
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" class="scroll-smooth">
-
 <head>
     <!-- 1. Basic Meta Tags & Title -->
-    <meta charset="UTF-8"> <!-- CRITICAL FIX: Corrected charset -->
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}منصة كود{% endblock %} | منصة كود</title>
 
@@ -15,8 +14,14 @@
     <!-- 3. External CSS Libraries -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/dracula.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
 
-    <!-- 4. External JS Libraries (with `defer` for performance) -->
+    <!-- 4. Custom Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- 5. External JS Libraries (with `defer` for performance) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js" defer></script>
@@ -25,43 +30,41 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/python/python.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
 
-    <!-- 5. Custom Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- CRITICAL FIX: Corrected Google Fonts URL -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    
     <!-- 6. Custom Styles -->
     <style>
-        /* Main font definition */
-        body { 
-            font-family: 'Tajawal', sans-serif; 
-        }
-
-        /* Pygments Syntax Highlighting Styles */
+        body { font-family: 'Tajawal', sans-serif; }
         .codehilite { background: #f6f8fa; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-size: 0.875rem; }
-        .codehilite .c { color: #6a737d } /* Comment */ .codehilite .err { color: #d73a49 } /* Error */ .codehilite .k { color: #d73a49; font-weight: bold } /* Keyword */ .codehilite .o { color: #d73a49 } /* Operator */ .codehilite .ch { color: #6a737d } .codehilite .cm { color: #6a737d } .codehilite .cp { color: #6a737d } .codehilite .cpf { color: #6a737d } .codehilite .c1 { color: #6a737d } .codehilite .cs { color: #6a737d } .codehilite .gd { color: #d73a49 } .codehilite .ge { font-style: italic } .codehilite .gr { color: #d73a49 } .codehilite .gh { color: #24292e; font-weight: bold } .codehilite .gi { color: #22863a } .codehilite .go { color: #24292e } .codehilite .gp { color: #24292e } .codehilite .gs { font-weight: bold } .codehilite .gu { color: #0366d6; font-weight: bold } .codehilite .gt { color: #d73a49 } .codehilite .kc { color: #d73a49; font-weight: bold } .codehilite .kd { color: #d73a49; font-weight: bold } .codehilite .kn { color: #d73a49; font-weight: bold } .codehilite .kp { color: #d73a49; font-weight: bold } .codehilite .kr { color: #d73a49; font-weight: bold } .codehilite .kt { color: #d73a49; font-weight: bold } .codehilite .m { color: #0366d6 } .codehilite .s { color: #032f62 } .codehilite .n { color: #24292e } .codehilite .na { color: #005cc5 } .codehilite .nb { color: #005cc5 } .codehilite .nc { color: #e36209 } .codehilite .no { color: #005cc5 } .codehilite .nd { color: #e36209; font-weight: bold } .codehilite .ni { color: #24292e } .codehilite .ne { color: #e36209; font-weight: bold } .codehilite .nf { color: #6f42c1; font-weight: bold } .codehilite .nl { color: #d73a49; font-weight: bold } .codehilite .nn { color: #24292e } .codehilite .nt { color: #22863a; font-weight: bold } .codehilite .nv { color: #e36209 } .codehilite .ow { color: #d73a49; font-weight: bold } .codehilite .w { color: #bbbbbb } .codehilite .mb { color: #0366d6 } .codehilite .mf { color: #0366d6 } .codehilite .mh { color: #0366d6 } .codehilite .mi { color: #0366d6 } .codehilite .mo { color: #0366d6 } .codehilite .sa { color: #032f62 } .codehilite .sb { color: #032f62 } .codehilite .sc { color: #032f62 } .codehilite .dl { color: #032f62 } .codehilite .sd { color: #032f62 } .codehilite .s2 { color: #032f62 } .codehilite .se { color: #032f62 } .codehilite .sh { color: #032f62 } .codehilite .si { color: #032f62 } .codehilite .sx { color: #032f62 } .codehilite .sr { color: #032f62 } .codehilite .s1 { color: #032f62 } .codehilite .ss { color: #032f62 } .codehilite .bp { color: #005cc5 } .codehilite .fm { color: #6f42c1; font-weight: bold } .codehilite .vc { color: #e36209 } .codehilite .vg { color: #e36209 } .codehilite .vi { color: #e36209 } .codehilite .vm { color: #e36209 } .codehilite .il { color: #0366d6 }
+        /* Pygments styles can be added here for brevity in the final version */
+        .dot-flashing { position: relative; width: 10px; height: 10px; border-radius: 5px; background-color: #9880ff; color: #9880ff; animation: dotFlashing 1s infinite linear alternate; animation-delay: .5s; }
+        .dot-flashing::before, .dot-flashing::after { content: ''; display: inline-block; position: absolute; top: 0; }
+        .dot-flashing::before { left: -15px; width: 10px; height: 10px; border-radius: 5px; background-color: #9880ff; animation: dotFlashing 1s infinite alternate; animation-delay: 0s; }
+        .dot-flashing::after { left: 15px; width: 10px; height: 10px; border-radius: 5px; background-color: #9880ff; animation: dotFlashing 1s infinite alternate; animation-delay: 1s; }
+        @keyframes dotFlashing { 0% { background-color: #9880ff; } 50%, 100% { background-color: rgba(152, 128, 255, 0.2); } }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 antialiased">
     
-    <header x-data="{ mobileMenuOpen: false }" class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
+    <header x-data="{ mobileMenuOpen: false }" class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-40">
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
+                <!-- Left Side: Logo & Main Nav Links -->
                 <div class="flex items-center">
                     <a href="{% url 'home' %}" class="flex-shrink-0 text-2xl font-bold text-indigo-600 dark:text-indigo-400">منصة كود</a>
                     <div class="hidden md:block">
                         <div class="mr-10 rtl:mr-0 rtl:ml-10 flex items-baseline space-x-4 rtl:space-x-reverse">
-                            <!-- 1. CRITICAL FIX: Added app namespaces to all URLs -->
                             <a href="{% url 'courses:path_list' %}" class="text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">المسارات</a>
                             <a href="{% url 'problems:problem_list' %}" class="text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">المسائل</a>
+                            <a href="{% url 'chat:room_list' %}" class="text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">غرف النقاش</a>
                             <a href="{% url 'accounts:leaderboard' %}" class="text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">لوحة الصدارة</a>
                         </div>
                     </div>
                 </div>
 
+                <!-- Right Side: User Menu or Login/Signup -->
                 <div class="hidden md:block">
                     {% if user.is_authenticated %}
                     <div x-data="{ dropdownOpen: false }" class="relative">
@@ -69,8 +72,9 @@
                             <span class="font-medium text-sm">{{ user.username }}</span>
                             <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name={{ user.username|urlencode }}&background=indigo&color=white&font-size=0.5" alt="User Avatar">
                         </button>
-                        <div x-show="dropdownOpen" @click.away="dropdownOpen = false" x-transition class="origin-top-left rtl:origin-top-right absolute left-0 rtl:left-auto rtl:right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50">
+                        <div x-show="dropdownOpen" @click.away="dropdownOpen = false" x-cloak x-transition class="origin-top-left rtl:origin-top-right absolute left-0 rtl:left-auto rtl:right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50">
                             <a href="{% url 'dashboard:dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">لوحة التحكم</a>
+                            <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">الملف الشخصي</a> <!-- <-- أضف هذا السطر -->
                             <div class="px-4 py-2 text-xs text-gray-500">نقاطك: <span class="font-bold text-indigo-500">{{ user.score }}</span></div>
                             <hr class="dark:border-gray-600">
                             <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">تسجيل الخروج</a>
@@ -87,18 +91,20 @@
                 <!-- Mobile Menu Button -->
                 <div class="-ml-2 rtl:-mr-2 flex md:hidden">
                     <button @click="mobileMenuOpen = !mobileMenuOpen" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none">
+                        <span class="sr-only">Open main menu</span>
                         <svg class="h-6 w-6" :class="{'hidden': mobileMenuOpen, 'block': !mobileMenuOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-                        <svg class="h-6 w-6" :class="{'hidden': !mobileMenuOpen, 'block': mobileMenuOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <svg class="h-6 w-6" :class="{'hidden': !mobileMenuOpen, 'block': mobileMenuOpen }" x-cloak fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
             </div>
         </nav>
 
-        <!-- Mobile Menu -->
-        <div x-show="mobileMenuOpen" @click.away="mobileMenuOpen = false" class="md:hidden">
+        <!-- Mobile Menu Panel -->
+        <div x-show="mobileMenuOpen" @click.away="mobileMenuOpen = false" x-cloak class="md:hidden">
             <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                 <a href="{% url 'courses:path_list' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">المسارات</a>
                 <a href="{% url 'problems:problem_list' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">المسائل</a>
+                <a href="{% url 'chat:room_list' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">غرف النقاش</a>
                 <a href="{% url 'accounts:leaderboard' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">لوحة الصدارة</a>
             </div>
             <div class="pt-4 pb-3 border-t border-gray-700">
@@ -137,39 +143,117 @@
             <p>&copy; {% now "Y" %} منصة كود. جميع الحقوق محفوظة.</p>
         </div>
     </footer>
-<!-- ================================== -->
-<!--          CUSTOM SCRIPTS            -->
-<!-- ================================== -->
-    <script>
-        // This script listens for the event that HTMX fires just before a confirmation is needed.
-        document.body.addEventListener('htmx:confirm', function(event) {
-            // We check if the element that triggered the event has our custom class.
-            if (event.target.classList.contains('confirm-delete') || event.target.closest('.confirm-delete')) {
-                
-                // Prevent the default browser dialog from showing.
-                event.preventDefault();
 
-                // Trigger our beautiful SweetAlert2 modal.
+    <!-- AI TUTOR FLOATING WIDGET -->
+    {% if user.is_authenticated %}
+    <div x-data="aiTutor()" @keydown.escape.window="tutorOpen = false" class="fixed bottom-0 right-0 p-4 z-50 print:hidden">
+        <button @click="toggle()" class="bg-indigo-600 text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center transform hover:scale-110 transition-transform">
+            <svg x-show="!tutorOpen" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+            <svg x-show="tutorOpen" x-cloak class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+        <div x-show="tutorOpen" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-y-4" x-transition:enter-end="opacity-100 transform translate-y-0" @click.away="tutorOpen = false" class="absolute bottom-24 right-0 w-[28rem] max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-2xl flex flex-col h-[32rem]">
+            <h2 class="text-xl font-bold p-4 flex-shrink-0 border-b dark:border-gray-700">🤖 كود مساعد</h2>
+            <div id="ai-chat-log-floating" class="space-y-4 flex-grow overflow-y-auto p-4"></div>
+            <form id="ai-tutor-form-floating" @submit.prevent="handleSubmit($event)" class="p-4 flex-shrink-0 border-t dark:border-gray-700">
+                <input type="hidden" name="conversation_id" :value="conversationId">
+                <div class="flex gap-2">
+                    <input name="prompt" required autocomplete="off" class="flex-grow p-2 border dark:border-gray-600 bg-transparent rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="اسأل عن هذه الصفحة...">
+                    <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-3 rounded-lg hover:bg-indigo-700 disabled:opacity-50">إرسال</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- CUSTOM SCRIPTS -->
+    <script>
+        document.body.addEventListener('htmx:confirm', function(event) {
+            if (event.target.classList.contains('confirm-delete') || event.target.closest('.confirm-delete')) {
+                event.preventDefault();
                 Swal.fire({
-                    title: 'هل أنت متأكد؟',
-                    text: "لا يمكن التراجع عن حذف هذه المهمة!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33', // Red for delete
-                    cancelButtonColor: '#3085d6', // Blue for cancel
-                    confirmButtonText: 'نعم، احذفها!',
-                    cancelButtonText: 'إلغاء',
-                    background: '#1f2937', // Dark background to match your theme
-                    color: '#e5e7eb'       // Light text for dark background
-                }).then((result) => {
-                    // If the user confirms, we tell HTMX to proceed with the request.
-                    if (result.isConfirmed) {
-                        // This is the magic line that issues the original HTMX request.
-                        event.detail.issueRequest();
-                    }
-                })
+                    title: 'هل أنت متأكد؟', text: "لا يمكن التراجع عن هذا الإجراء!", icon: 'warning',
+                    showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'نعم، احذفه!', cancelButtonText: 'إلغاء',
+                    background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#fff',
+                    color: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#000'
+                }).then((result) => { if (result.isConfirmed) { event.detail.issueRequest(); } });
             }
         });
+
+        {% if user.is_authenticated %}
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('aiTutor', () => ({
+                tutorOpen: false,
+                pageContext: '',
+                conversationId: '{{ last_tutor_conversation.id|default:"" }}',
+                tutorSocket: null,
+                currentAiBubbleContent: null,
+                init() {
+                    this.tutorSocket = new WebSocket('ws://' + window.location.host + '/ws/ai_tutor/');
+                    this.tutorSocket.onmessage = this.handleMessage.bind(this);
+                    this.loadInitialMessages();
+                },
+                toggle() {
+                    this.tutorOpen = !this.tutorOpen;
+                    if (this.tutorOpen) {
+                        this.pageContext = document.querySelector('[data-page-context]')?.dataset.pageContext || '';
+                        setTimeout(() => this.scrollToBottom(), 100);
+                    }
+                },
+                loadInitialMessages() {
+                    const chatLog = document.getElementById('ai-chat-log-floating');
+                    chatLog.innerHTML = `{% filter escapejs %}{% if last_tutor_conversation %}{% for message in last_tutor_conversation.messages.all %}{% include 'ai_tutor/partials/chat_bubble.html' with content=message.content is_ai=message.is_from_ai %}{% endfor %}{% else %}{% include 'ai_tutor/partials/chat_bubble.html' with content="مرحبًا! أنا 'كود مساعد'. كيف يمكنني مساعدتك اليوم؟" is_ai=True %}{% endif %}{% endfilter %}`;
+                },
+                handleMessage(e) {
+                    const data = JSON.parse(e.data);
+                    const form = document.getElementById('ai-tutor-form-floating');
+                    form.querySelector('button').disabled = false;
+                    form.querySelector('input[name="prompt"]').disabled = false;
+
+                    if (data.type === 'chunk') {
+                        if (!this.currentAiBubbleContent) {
+                            const thinkingBubble = document.getElementById('ai-chat-log-floating').querySelector('.thinking');
+                            if (thinkingBubble) thinkingBubble.remove();
+                            document.getElementById('ai-chat-log-floating').insertAdjacentHTML('beforeend', `{% filter escapejs %}{% include 'ai_tutor/partials/chat_bubble.html' with is_ai=True content='' %}{% endfilter %}`);
+                            this.currentAiBubbleContent = document.getElementById('ai-chat-log-floating').lastElementChild.querySelector('.prose');
+                        }
+                        this.currentAiBubbleContent.innerHTML += data.content.replace(/\\n/g, '<br>');
+                    } else if (data.type === 'end_of_stream') {
+                        this.conversationId = data.conversation_id;
+                        this.currentAiBubbleContent = null;
+                        form.querySelector('input[name="prompt"]').focus();
+                    }
+                    this.scrollToBottom();
+                },
+                handleSubmit(e) {
+                    const prompt = e.target.elements.prompt.value;
+                    if (prompt.trim() === '') return;
+
+                    this.tutorSocket.send(JSON.stringify({'prompt': prompt, 'conversation_id': this.conversationId, 'context_info': this.pageContext}));
+                    
+                    const userBubbleHtml = `{% filter escapejs %}{% include 'ai_tutor/partials/chat_bubble.html' with is_ai=False content='${prompt}' %}{% endfilter %}`.replace('${prompt}', this.escapeHtml(prompt));
+                    document.getElementById('ai-chat-log-floating').insertAdjacentHTML('beforeend', userBubbleHtml);
+                    
+                    const thinkingBubbleHtml = `{% filter escapejs %}{% include 'ai_tutor/partials/chat_bubble.html' with is_ai=True content='<div class="dot-flashing"></div>' %}{% endfilter %}`.replace('class="flex', 'class="flex thinking');
+                    document.getElementById('ai-chat-log-floating').insertAdjacentHTML('beforeend', thinkingBubbleHtml);
+                    
+                    e.target.reset();
+                    e.target.elements.prompt.disabled = true;
+                    e.target.elements.button.disabled = true;
+                    this.scrollToBottom();
+                },
+                scrollToBottom() {
+                    const chatLog = document.getElementById('ai-chat-log-floating');
+                    chatLog.scrollTop = chatLog.scrollHeight;
+                },
+                escapeHtml(unsafe) {
+                    return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+                }
+            }));
+        });
+        {% endif %}
     </script>
+    <!-- CRITICAL FIX: Add a block for page-specific scripts -->
+    {% block scripts %}{% endblock %}
 </body>
 </html>

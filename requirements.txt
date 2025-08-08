@@ -1,4 +1,9 @@
-django-widget-tweaks
-django-htmx
-RestrictedPython
-markdown
+django-widget-tweaks # مكتبة Django Widget Tweaks لتعديل خصائص الواجهات بسهولة.
+django-htmx # مكتبة Django HTMX لتسهيل التفاعل بين الواجهة الأمامية والخلفية.
+RestrictedPython # مكتبة RestrictedPython لتقييد تنفيذ الأكواد البرمجية.
+markdown # مكتبة Markdown لتحويل النصوص إلى HTML.
+channels # مكتبة Channels لتشغيل تطبيقات Django Channels.
+channels_redis # مكتبة Channels لتشغيل تطبيقات Django Channels.
+daphne # مكتبة Daphne لتشغيل تطبيقات Django Channels.
+google-generativeai # مكتبة Google Generative AI للتفاعل مع نماذج الذكاء الاصطناعي من جوجل.
+python-dotenv # مكتبة ممتازة لإدارة مفاتيح API والمتغيرات الحساسة بأمان.

@@ -1,0 +1,79 @@
+<!-- templates/accounts/profile.html -->
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}تعديل الملف الشخصي{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6">الملف الشخصي</h1>
+
+    <!-- رسالة النجاح -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md" role="alert">
+                <p class="font-bold">{{ message }}</p>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- العمود الأيمن: الصورة والروابط -->
+        <div class="md:col-span-1">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg text-center">
+                <img class="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-indigo-500" src="{{ user.get_avatar_url }}" alt="الصورة الرمزية">
+                <h2 class="text-xl font-bold">{{ user.get_full_name|default:user.username }}</h2>
+                <p class="text-sm text-gray-500">{{ user.email }}</p>
+                <hr class="my-4 dark:border-gray-600">
+                <a href="{% url 'password_change' %}" class="w-full block text-center py-2 px-4 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                    تغيير كلمة المرور
+                </a>
+            </div>
+        </div>
+
+        <!-- العمود الأيسر: نموذج التعديل -->
+        <div class="md:col-span-2">
+            <form method="post" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg space-y-6">
+                {% csrf_token %}
+                
+                <!-- حقول الاسم والبريد -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">{{ form.first_name.label }}</label>
+                        {% render_field form.first_name class="w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">{{ form.last_name.label }}</label>
+                        {% render_field form.last_name class="w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" %}
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">{{ form.email.label }}</label>
+                    {% render_field form.email class="w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600" %}
+                </div>
+
+                <!-- حقل اختيار الصورة الرمزية -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">{{ form.avatar.label }}</label>
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-4">
+                        {% for choice in form.avatar %}
+                        <label class="cursor-pointer">
+                            {{ choice.tag }} <!-- هذا يعرض <input type="radio"> المخفي -->
+                            {% comment %} <img src="{% static 'images/avatars/'|add:choice.choice_value|add:'.jpg' %}" 
+                                 class="w-full rounded-full border-4 transition-all"
+                                 :class="{ 'border-indigo-500 scale-110': '{{ choice.choice_value }}' == '{{ form.avatar.value }}', 'border-transparent hover:border-gray-400': '{{ choice.choice_value }}' != '{{ form.avatar.value }}' }"> {% endcomment %}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700">
+                        حفظ التغييرات
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

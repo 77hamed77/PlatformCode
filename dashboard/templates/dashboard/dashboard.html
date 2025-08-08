@@ -6,11 +6,14 @@
 
 {% block content %}
 <div class="space-y-8">
-    <!-- ... Welcome Header and Stat Cards ... -->
+
+    <!-- 1. Welcome Header -->
     <div>
         <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">أهلاً بعودتك، {{ user.username }}!</h1>
         <p class="mt-2 text-md text-gray-600 dark:text-gray-400">لنجعل هذا اليوم يومًا مثمرًا. إليك ملخص رحلتك حتى الآن.</p>
     </div>
+
+    <!-- 2. Stat Cards Section -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-lg"><p class="text-sm font-medium uppercase tracking-wider">نقاطك</p><p class="text-3xl font-extrabold">{{ user.score }}</p></div>
         <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg"><p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">المسائل المحلولة</p><p class="text-3xl font-extrabold text-gray-900 dark:text-white">{{ stats.solved_problems }}</p></div>
@@ -18,10 +21,12 @@
         <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg flex flex-col justify-center items-center"><a href="{% url 'accounts:leaderboard' %}" class="text-center hover:scale-110 transition-transform"><p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">ترتيبك</p><p class="text-3xl font-extrabold text-gray-900 dark:text-white">#{{ stats.rank|default:'?' }}</p></a></div>
     </div>
     
-    <!-- Main Grid -->
+    <!-- 3. Main Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Center/Left Column: Main Tools -->
         <div class="lg:col-span-2 space-y-8">
-            <!-- ... In Progress Courses ... -->
+            <!-- In Progress Courses -->
             <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
                 <h2 class="text-xl font-bold mb-4">تابع من حيث توقفت</h2>
                 <div class="space-y-4">
@@ -54,7 +59,6 @@
                         <div class="flex justify-between items-center mt-2">
                             <span class="text-xs text-gray-400">آخر تحديث: {{ note.updated_at|date:"Y-m-d" }}</span>
                             <div class="flex gap-4">
-                                <!-- CRITICAL FIX: Added the delete button for notes -->
                                 <a href="{% url 'dashboard:note_update' note.pk %}" class="text-sm text-indigo-500 hover:underline">تعديل</a>
                                 <a href="{% url 'dashboard:note_delete' note.pk %}" class="text-sm text-red-500 hover:underline">حذف</a>
                             </div>
@@ -67,8 +71,9 @@
             </div>
         </div>
 
+        <!-- Right Column: Quick Actions & Feeds -->
         <div class="space-y-8">
-            <!-- ... Task Manager and Last Solved Problems ... -->
+            <!-- Task Manager -->
             <div id="task-manager" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
                 <h2 class="text-xl font-bold mb-4">📝 مهام اليوم</h2>
                 <form hx-post="{% url 'dashboard:task_create' %}" hx-target="#task-list" hx-swap="beforeend" hx-on::after-request="this.reset()">
@@ -82,17 +87,36 @@
                     {% include 'dashboard/partials/task_list.html' with tasks=tasks %}
                 </div>
             </div>
-             <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+
+            <!-- CRITICAL FIX: Added the Badges Showcase section -->
+            <!-- Badges Showcase -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                <h2 class="text-xl font-bold mb-4">🏅 شاراتك المكتسبة</h2>
+                <div class="flex flex-wrap gap-4">
+                    {% for student_badge in student_badges %}
+                        <div class="text-center group" title="{{ student_badge.badge.description }}">
+                            <div class="text-5xl transform group-hover:scale-125 transition-transform">{{ student_badge.badge.icon }}</div>
+                            <p class="text-xs font-semibold mt-1">{{ student_badge.badge.title }}</p>
+                        </div>
+                    {% empty %}
+                        <p class="text-sm text-gray-500">واصل التعلم لحصد أول شارة لك!</p>
+                    {% endfor %}
+                    <a href="{% url 'gamification:badge_list' %}" class="text-sm text-indigo-500 hover:underline">قائمة الشارات</a>
+                </div>
+            </div>
+
+            <!-- Last Solved Problems -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
                 <h2 class="text-xl font-bold mb-4">آخر إنجازاتك</h2>
                 <div class="space-y-3">
-                     {% for submission in last_solved_problems %}
+                    {% for submission in last_solved_problems %}
                         <a href="{% url 'problems:problem_detail' submission.problem.pk %}" class="flex items-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700/50">
                             <span class="text-green-500 mr-2 rtl:ml-2">✅</span>
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ submission.problem.title }}</span>
                         </a>
-                     {% empty %}
+                    {% empty %}
                         <p class="text-gray-500 dark:text-gray-400 text-sm">لم تقم بحل أي مسألة بعد. <a href="{% url 'problems:problem_list' %}" class="text-indigo-500 hover:underline">ابدأ التحدي!</a></p>
-                     {% endfor %}
+                    {% endfor %}
                 </div>
             </div>
         </div>
