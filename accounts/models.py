@@ -4,6 +4,9 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.templatetags.static import static
+import uuid
+from django.conf import settings
+
 
 class CustomUser(AbstractUser):
     """
@@ -68,3 +71,15 @@ class CustomUser(AbstractUser):
     def get_solved_problems_count(self):
         """Efficiently counts the number of unique problems solved by the user."""
         return self.submissions.filter(status='Correct').values('problem').distinct().count()
+    
+
+
+class TelegramLink(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='telegram_link')
+    telegram_chat_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    connection_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {'Active' if self.is_active else 'Pending'}"

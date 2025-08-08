@@ -39,7 +39,8 @@ LOCAL_APPS = [
     'dashboard.apps.DashboardConfig',
     'chat.apps.ChatConfig',
     'ai_tutor.apps.AiTutorConfig',
-    'gamification.apps.GamificationConfig', # <-- هذا السطر صحيح وموجود
+    'gamification.apps.GamificationConfig', 
+    'telegram_bot.apps.TelegramBotConfig',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -83,6 +84,8 @@ CHANNEL_LAYERS = {
     },
 }
 
+SITE_URL = "http://127.0.0.1:8000" # للتطوير المحلي
+
 # =================================================================
 # Database & Auth
 # =================================================================
@@ -123,3 +126,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Custom Project Settings
 # =================================================================
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')

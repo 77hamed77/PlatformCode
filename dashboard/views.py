@@ -7,12 +7,12 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
+from django.conf import settings
 
 # Import models from all relevant apps
 from courses.models import Course, StudentProgress
 from problems.models import Submission
-from ai_tutor.models import TutorConversation
-from gamification.models import StudentBadge # <-- استيراد نموذج شارات الطالب
+from accounts.models import TelegramLink  # <-- استيراد نموذج ربط Telegram
 from .forms import NoteForm, TaskForm
 from .models import Note, Task
 
@@ -21,16 +21,21 @@ from .models import Note, Task
 # =================================================================
 
 class DashboardView(LoginRequiredMixin, ListView):
+    """
+    يعرض لوحة التحكم الرئيسية للمستخدم، وهي نقطة التجمع المركزية
+    لكل معلوماته وإنجازاته وأدواته الشخصية.
+    """
     template_name = 'dashboard/dashboard.html'
-    context_object_name = 'tasks'
+    context_object_name = 'tasks' # The primary list this view handles is tasks
 
     def get_queryset(self):
-        """Uses the custom manager defined in the model for clean, reusable queries."""
+        """يستخدم المدير المخصص لجلب مهام المستخدم الحالي بشكل منظم."""
         return Task.objects.for_user(self.request.user)
 
     def get_context_data(self, **kwargs):
         """
-        Gathers all necessary context for the dashboard in the most efficient way possible.
+        يجمع كل السياق اللازم للوحة التحكم بأكثر الطرق كفاءة،
+        مع تجنب مشاكل N+1 query.
         """
         context = super().get_context_data(**kwargs)
         user = self.request.user
@@ -38,20 +43,23 @@ class DashboardView(LoginRequiredMixin, ListView):
         # --- Base Context ---
         context['task_form'] = TaskForm()
         context['notes'] = Note.objects.filter(student=user).order_by('-updated_at')[:5]
-        context['last_tutor_conversation'] = TutorConversation.objects.filter(student=user).prefetch_related('messages').first()
 
-        # --- CRITICAL FIX: Fetch student badges and add them to the context ---
-        context['student_badges'] = StudentBadge.objects.filter(student=user).select_related('badge').order_by('-awarded_at')
+        # --- Telegram Integration Context ---
+        # نستخدم get_or_create لضمان وجود كائن ربط دائمًا للمستخدم
+        telegram_link, _ = TelegramLink.objects.get_or_create(user=user)
+        context['telegram_link'] = telegram_link
+        context['telegram_bot_name'] = getattr(settings, 'TELEGRAM_BOT_NAME', 'codeplatform_bot')
 
         # --- Pre-calculated Stats ---
         stats = {
             'solved_problems': user.get_solved_problems_count(),
             'completed_lessons': user.progress_records.count(),
-            'rank': None, # Rank calculation is expensive; better to do it on a dedicated page
+            'rank': None, # حساب الترتيب مكلف، من الأفضل القيام به في صفحة مخصصة
         }
         context['stats'] = stats
         
         # --- Efficiently Fetch in-progress courses and their progress ---
+        # هذا الاستعلام المعقد يجلب عدد الدروس المكتملة كحقل إضافي لكل كورس
         completed_lessons_subquery = StudentProgress.objects.filter(
             student=user,
             lesson__course=OuterRef('pk')

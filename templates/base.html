@@ -9,7 +9,7 @@
     <title>{% block title %}منصة كود{% endblock %} | منصة كود</title>
 
     <!-- 2. Favicon -->
-    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    <link rel="icon" type="image/png" href="{% static 'images/favicon2.png' %}">
 
     <!-- 3. External CSS Libraries -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
@@ -174,7 +174,7 @@
                     title: 'هل أنت متأكد؟', text: "لا يمكن التراجع عن هذا الإجراء!", icon: 'warning',
                     showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6',
                     confirmButtonText: 'نعم، احذفه!', cancelButtonText: 'إلغاء',
-                    background: document.documentElement.classList.contains('dark') ? '#1f2937' : '#fff',
+                    background: document.documentElement.classList.contains('dark') ? '#ffff' : '#1f2937',
                     color: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#000'
                 }).then((result) => { if (result.isConfirmed) { event.detail.issueRequest(); } });
             }

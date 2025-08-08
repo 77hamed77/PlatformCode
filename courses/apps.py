@@ -1,4 +1,5 @@
 # courses/apps.py
+
 from django.apps import AppConfig
 
 class CoursesConfig(AppConfig):
@@ -6,5 +7,6 @@ class CoursesConfig(AppConfig):
     name = 'courses'
 
     def ready(self):
-        # هذا هو المكان الوحيد الذي يجب أن يتم فيه استيراد الإشارات
+        # هذا السطر هو الذي يقوم بتسجيل جميع الإشارات الموجودة في ملف signals.py
+        # إذا كان هذا السطر مفقودًا، فلن تعمل الإشارات أبدًا.
         import courses.signals

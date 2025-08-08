@@ -2,95 +2,84 @@
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.urls import reverse
+from django.conf import settings
 
-# استيراد النماذج من جميع التطبيقات ذات الصلة
-from .models import StudentProgress, QuizSubmission
+# استيراد النماذج
+from .models import StudentProgress, QuizSubmission, Course
 from problems.models import Submission as ProblemSubmission
-from gamification.models import Badge, StudentBadge # <-- استيراد نماذج الشارات
+
+# استيراد أداة إرسال رسائل Telegram
+# تأكد من أن هذا المسار صحيح بناءً على هيكل مشروعك
+from telegram_bot.utils import send_telegram_message
 
 # استيراد الدالة المساعدة الآمنة
+# تأكد من أن هذا الملف موجود في courses/utils.py
 from .utils import award_points_safely
 
 # =================================================================
-# Central Badge Awarding Logic
+# Signal Handlers (No changes needed here)
 # =================================================================
-
-def check_and_award_badges(student):
-    """
-    دالة مركزية للتحقق من جميع الإنجازات المحتملة للطالب ومنح الشارات.
-    يتم استدعاؤها بعد أي حدث قد يؤدي إلى إنجاز.
-    """
-    # جلب الشارات التي يملكها الطالب بالفعل لتجنب الاستعلامات المتكررة
-    current_badge_ids = set(student.badges.values_list('badge_id', flat=True))
-
-    # 1. التحقق من إنجازات حل المسائل
-    solved_count = student.get_solved_problems_count()
-    problem_badges = Badge.objects.filter(
-        achievement_type=Badge.AchievementType.PROBLEMS, 
-        threshold__lte=solved_count
-    ).exclude(id__in=current_badge_ids) # جلب الشارات الجديدة فقط
-
-    # 2. التحقق من إنجازات إكمال الدروس
-    lessons_count = student.progress_records.count()
-    lesson_badges = Badge.objects.filter(
-        achievement_type=Badge.AchievementType.LESSONS, 
-        threshold__lte=lessons_count
-    ).exclude(id__in=current_badge_ids)
-
-    # (يمكنك إضافة أنواع أخرى هنا، مثل الاختبارات)
-
-    # دمج كل الشارات الجديدة التي يستحقها الطالب
-    all_new_badges = list(problem_badges) + list(lesson_badges)
-    
-    # منح الشارات الجديدة
-    for badge in all_new_badges:
-        StudentBadge.objects.create(student=student, badge=badge)
-        print(f"🎉 تهانينا! {student.username} حصل على شارة: '{badge.title}'")
-
-
-# =================================================================
-# Signal Handlers for Gamification (Points + Badges)
-# =================================================================
-
 @receiver(post_save, sender=StudentProgress)
 def on_lesson_completion(sender, instance, created, **kwargs):
-    """
-    يمنح نقاطًا وشارات عند إكمال درس لأول مرة.
-    """
     if created:
         points_to_award = 10
         award_points_safely(instance.student, points_to_award)
-        # بعد منح النقاط، تحقق من أي شارات جديدة
-        check_and_award_badges(instance.student)
-
 
 @receiver(post_save, sender=QuizSubmission)
 def on_quiz_submission(sender, instance, created, **kwargs):
-    """
-    يمنح نقاطًا وشارات بناءً على درجة الاختبار في المحاولة الأولى.
-    """
     if created and instance.score > 0:
         points_to_award = int(instance.score / 10)
         if points_to_award > 0:
             award_points_safely(instance.student, points_to_award)
-            # (يمكن إضافة منطق شارات الاختبارات هنا في المستقبل)
-            # check_and_award_badges(instance.student)
-
 
 @receiver(post_save, sender=ProblemSubmission)
 def on_correct_submission(sender, instance, created, **kwargs):
-    """
-    يمنح نقاطًا وشارات عند حل مسألة بشكل صحيح لأول مرة.
-    """
     if created and instance.status == 'Correct':
-        is_first_correct = not ProblemSubmission.objects.filter(
-            student=instance.student,
-            problem=instance.problem,
-            status='Correct'
-        ).exclude(pk=instance.pk).exists()
-
+        is_first_correct = not ProblemSubmission.objects.filter(student=instance.student, problem=instance.problem, status='Correct').exclude(pk=instance.pk).exists()
         if is_first_correct:
             points_to_award = instance.problem.points
             award_points_safely(instance.student, points_to_award)
-            # بعد منح النقاط، تحقق من أي شارات جديدة
-            check_and_award_badges(instance.student)
+
+# =================================================================
+# Notification Signal Handler (This is where we debug)
+# =================================================================
+
+@receiver(post_save, sender=Course)
+def on_new_course_created(sender, instance, created, **kwargs):
+    """
+    يرسل إشعار Telegram لجميع المستخدمين المرتبطين عند إنشاء كورس جديد.
+    """
+    # 1. Diagnostic Print: Check if the signal is firing at all.
+    print("====== on_new_course_created SIGNAL FIRED ======")
+    
+    if created:
+        print(f"  -> Course '{instance.title}' was CREATED.")
+        from accounts.models import TelegramLink
+
+        active_links = TelegramLink.objects.filter(is_active=True)
+        
+        # 2. Diagnostic Print: Check if we are finding any active users.
+        print(f"  -> Found {active_links.count()} active Telegram link(s).")
+        
+        if not active_links.exists():
+            print("  -> No active users to notify. Exiting.")
+            return
+
+        course_url = getattr(settings, 'SITE_URL', 'http://127.0.0.1:8000') + reverse('courses:course_detail', kwargs={'pk': instance.pk})
+        
+        message = (
+            f"📢 <b>كورس جديد متاح!</b>\n\n"
+            f"تمت إضافة كورس '<b>{instance.title}</b>' إلى مسار '<b>{instance.learning_path.title}</b>'.\n\n"
+            f"<a href='{course_url}'>ابدأ التعلم الآن!</a>"
+        )
+        
+        for link in active_links:
+            # 3. Diagnostic Print: Check if we are attempting to send a message.
+            print(f"  -> Attempting to send notification to user: {link.user.username} (Chat ID: {link.telegram_chat_id})")
+            send_telegram_message(link.telegram_chat_id, message)
+        
+        print("====== SIGNAL FINISHED ======")
+    else:
+        print(f"  -> Course '{instance.title}' was UPDATED, not created. No notification sent.")
+        print("====== SIGNAL FINISHED ======")

@@ -7,13 +7,12 @@
 {% block content %}
 <div class="space-y-8">
 
-    <!-- 1. Welcome Header -->
+    <!-- 1. Welcome Header & 2. Stat Cards -->
+    <!-- (No changes here) -->
     <div>
         <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">أهلاً بعودتك، {{ user.username }}!</h1>
         <p class="mt-2 text-md text-gray-600 dark:text-gray-400">لنجعل هذا اليوم يومًا مثمرًا. إليك ملخص رحلتك حتى الآن.</p>
     </div>
-
-    <!-- 2. Stat Cards Section -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-lg"><p class="text-sm font-medium uppercase tracking-wider">نقاطك</p><p class="text-3xl font-extrabold">{{ user.score }}</p></div>
         <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg"><p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">المسائل المحلولة</p><p class="text-3xl font-extrabold text-gray-900 dark:text-white">{{ stats.solved_problems }}</p></div>
@@ -24,9 +23,10 @@
     <!-- 3. Main Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <!-- Center/Left Column: Main Tools -->
+        <!-- Center/Left Column -->
         <div class="lg:col-span-2 space-y-8">
-            <!-- In Progress Courses -->
+            <!-- In Progress Courses & Notes sections -->
+            <!-- (No changes here) -->
             <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
                 <h2 class="text-xl font-bold mb-4">تابع من حيث توقفت</h2>
                 <div class="space-y-4">
@@ -42,8 +42,6 @@
                     {% endfor %}
                 </div>
             </div>
-            
-            <!-- Notes -->
             <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold">📓 مذكراتك وأفكارك</h2>
@@ -71,10 +69,11 @@
             </div>
         </div>
 
-        <!-- Right Column: Quick Actions & Feeds -->
+        <!-- Right Column -->
         <div class="space-y-8">
             <!-- Task Manager -->
             <div id="task-manager" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                <!-- ... (Task Manager code is unchanged) ... -->
                 <h2 class="text-xl font-bold mb-4">📝 مهام اليوم</h2>
                 <form hx-post="{% url 'dashboard:task_create' %}" hx-target="#task-list" hx-swap="beforeend" hx-on::after-request="this.reset()">
                     {% csrf_token %}
@@ -88,35 +87,46 @@
                 </div>
             </div>
 
-            <!-- CRITICAL FIX: Added the Badges Showcase section -->
-            <!-- Badges Showcase -->
+            <!-- CRITICAL FIX: Added Telegram Bot integration card -->
             <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
-                <h2 class="text-xl font-bold mb-4">🏅 شاراتك المكتسبة</h2>
-                <div class="flex flex-wrap gap-4">
-                    {% for student_badge in student_badges %}
-                        <div class="text-center group" title="{{ student_badge.badge.description }}">
-                            <div class="text-5xl transform group-hover:scale-125 transition-transform">{{ student_badge.badge.icon }}</div>
-                            <p class="text-xs font-semibold mt-1">{{ student_badge.badge.title }}</p>
-                        </div>
-                    {% empty %}
-                        <p class="text-sm text-gray-500">واصل التعلم لحصد أول شارة لك!</p>
-                    {% endfor %}
-                    <a href="{% url 'gamification:badge_list' %}" class="text-sm text-indigo-500 hover:underline">قائمة الشارات</a>
-                </div>
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <svg class="w-6 h-6 ml-2 rtl:mr-2 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-1.39.14-1.64l18.4-6.5c.95-.34 1.8.6 1.4 1.74l-4.3 16.41c-.38 1.48-1.55 1.8-2.6 1.05l-4.41-3.32-2.13 2.05c-.56.56-1.55.25-1.78-.51z"/></svg>
+                    <span>ربط حساب Telegram</span>
+                </h2>
+                {% if telegram_link.is_active %}
+                    <div class="text-center p-4 bg-green-50 dark:bg-green-900/50 rounded-lg">
+                        <p class="font-semibold text-green-700 dark:text-green-200">
+                            ✅ حسابك مرتبط بنجاح!
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">ستتلقى الإشعارات الهامة عبر Telegram.</p>
+                    </div>
+                {% else %}
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        للحصول على إشعارات فورية بالمحتوى الجديد والتحديات، اتبع الخطوات التالية:
+                    </p>
+                    <ol class="list-decimal list-inside my-3 text-sm space-y-2">
+                        <li>افتح Telegram وابحث عن البوت <code>@{{ telegram_bot_name }}</code>.</li>
+                        <li>أرسل له الأمر التالي بالكامل:</li>
+                    </ol>
+                    <div class="p-2 bg-gray-100 dark:bg-gray-700 rounded-md text-center font-mono text-sm break-all">
+                        /connect {{ telegram_link.connection_token }}
+                    </div>
+                {% endif %}
             </div>
 
             <!-- Last Solved Problems -->
             <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                <!-- ... (Last Solved Problems code is unchanged) ... -->
                 <h2 class="text-xl font-bold mb-4">آخر إنجازاتك</h2>
                 <div class="space-y-3">
-                    {% for submission in last_solved_problems %}
+                     {% for submission in last_solved_problems %}
                         <a href="{% url 'problems:problem_detail' submission.problem.pk %}" class="flex items-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700/50">
                             <span class="text-green-500 mr-2 rtl:ml-2">✅</span>
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ submission.problem.title }}</span>
                         </a>
-                    {% empty %}
+                     {% empty %}
                         <p class="text-gray-500 dark:text-gray-400 text-sm">لم تقم بحل أي مسألة بعد. <a href="{% url 'problems:problem_list' %}" class="text-indigo-500 hover:underline">ابدأ التحدي!</a></p>
-                    {% endfor %}
+                     {% endfor %}
                 </div>
             </div>
         </div>
