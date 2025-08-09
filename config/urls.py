@@ -21,6 +21,9 @@ urlpatterns = [
     # It's better to place this under the 'accounts/' path for consistency
     path('accounts/', include('django.contrib.auth.urls')),
 
+    path('support-us/', TemplateView.as_view(template_name="support_us.html"), name='support_us'),
+    path('about-us/', TemplateView.as_view(template_name="about_us.html"), name='about_us'),
+
     # Home Page
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
 ]

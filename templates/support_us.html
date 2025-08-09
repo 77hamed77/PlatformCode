@@ -1,0 +1,94 @@
+<!-- templates/support_us.html -->
+{% extends 'base.html' %}
+{% load static %} {# تأكد من تحميل static للصور #}
+
+{% block title %}ادعم استمرارية منصة كود{% endblock %}
+
+{% block content %}
+<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+    <div class="py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+
+            <!-- 1. رأس الصفحة: "السبب" -->
+            <div class="text-center">
+                <h1 class="text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 sm:text-4xl">
+                    ساعدنا على الاستمرار في العطاء
+                </h1>
+                <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
+                    منصة كود هي مشروع تعليمي غير ربحي، تم بناؤه بحب ليكون رفيق كل مبرمج و طالب معلوماتية أو برمجيات. هدفنا أن يبقى مجانيًا ومتاحًا للجميع دائمًا.
+                </p>
+            </div>
+
+            <hr class="my-10 border-gray-200 dark:border-gray-700">
+
+            <!-- 2. المحتوى الرئيسي: "كيف" و "لماذا" -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                
+                <!-- العمود الأيسر: الباركود وتعليمات التبرع -->
+                <div class="text-center">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">ادعمنا عبر شام كاش</h2>
+                    <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-6 inline-block shadow-inner">
+                        <!-- 
+                            ================================================
+                            !!! تنبيه هام !!!
+                            هنا ستضع صورة الباركود الخاصة بك.
+                            1. ضع الصورة في مجلد static/images/
+                            2. استبدل `src` بالمسار الصحيح: {% static 'images/your_qr_code.png' %}
+                            ================================================
+                        -->
+                        <img src="{% static 'images/sham_cash_qr_placeholder.png' %}" 
+                             alt="باركود التبرع عبر شام كاش"
+                             class="w-64 h-64 rounded-md mx-auto"
+                             onerror="this.onerror=null;this.src='https://via.placeholder.com/250x250.png?text=QR+Code+Here';">
+                    </div>
+                    <p class="mt-4 text-gray-500 dark:text-gray-400">
+                        امسح الباركود باستخدام تطبيق شام كاش للتبرع بأي مبلغ تريده. كل مساهمة، مهما كانت صغيرة، تحدث فرقًا كبيرًا.
+                    </p>
+                </div>
+
+                <!-- العمود الأيمن: تفصيل التكاليف -->
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">أين يذهب دعمك؟</h2>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">
+                        تبرعك لا يذهب لتغطية تكاليف شخصية، بل يذهب مباشرة لتغطية النفقات التشغيلية التي تبقي المنصة حية ومتطورة. هذه التكاليف تشمل:
+                    </p>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0"><div class="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-full"><svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9V3"/></svg></div></div>
+                            <div class="ml-4 rtl:mr-4">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200">الدومين والاستضافة</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">التكلفة السنوية لحجز اسم النطاق وتشغيل الخوادم التي تستضيف الموقع.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0"><div class="p-2 bg-red-100 dark:bg-red-900/50 rounded-full"><svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg></div></div>
+                            <div class="ml-4 rtl:mr-4">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200">خدمات Redis (المجتمع والشات)</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">الاشتراك الشهري في خدمة Redis، وهي ضرورية لعمل نظام الإشعارات الفورية والشات بشكل فعال وسريع.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0"><div class="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-full"><svg class="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg></div></div>
+                            <div class="ml-4 rtl:mr-4">
+                                <h3 class="font-semibold text-gray-800 dark:text-gray-200">واجهة Gemini API (الشات الذكي)</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">تكلفة استخدام واجهة برمجة تطبيقات Gemini، والتي تمكننا من تقديم مساعد ذكي للطلاب.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <hr class="my-10 border-gray-200 dark:border-gray-700">
+
+            <!-- 3. الخاتمة: "الشكر" -->
+            <div class="text-center">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">شكرًا لكونك جزءًا من هذه الرحلة</h2>
+                <p class="mt-3 max-w-2xl mx-auto text-gray-600 dark:text-gray-400">
+                    كل تبرع، مهما كان حجمه، هو تصويت على استمرارية هذه المنصة وتطويرها. شكرًا لدعمك لمجتمع المطورين السوريين والعرب.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

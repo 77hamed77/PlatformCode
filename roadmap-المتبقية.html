@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خارطة طريق التطوير المستقبلية - منصة كود</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans Arabic', Arial, sans-serif;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .version {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .status-section {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .status-section h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        
+        .roadmap-section {
+            margin-bottom: 50px;
+        }
+        
+        .section-header {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .section-header h2 {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-header .icon {
+            width: 30px;
+            height: 30px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+        
+        .feature-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(45deg, #4f46e5, #7c3aed);
+        }
+        
+        .feature-card h3 {
+            color: #1e293b;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .problem {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .problem strong {
+            color: #dc2626;
+        }
+        
+        .action-plan {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .action-plan h4 {
+            color: #059669;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .step {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-right: 4px solid #10b981;
+        }
+        
+        .step h5 {
+            color: #1f2937;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .step ul {
+            margin-right: 20px;
+        }
+        
+        .step li {
+            margin-bottom: 5px;
+            color: #4b5563;
+        }
+        
+        .code {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 8px 0;
+            direction: ltr;
+            text-align: left;
+        }
+        
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        .checklist {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .checklist h4 {
+            color: #1d4ed8;
+            margin-bottom: 15px;
+        }
+        
+        .checklist ul {
+            margin-right: 20px;
+        }
+        
+        .checklist li {
+            margin-bottom: 8px;
+            position: relative;
+        }
+        
+        .checklist li::before {
+            content: '☐';
+            margin-left: 8px;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+        
+        .footer {
+            background: #1f2937;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            font-size: 0.9em;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #10b981, #059669);
+            width: 75%;
+            border-radius: 4px;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+            
+            .feature-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>خارطة طريق التطوير المستقبلية</h1>
+            <div class="version">الإصدار 2.0+</div>
+        </div>
+        
+        <div class="content">
+            <div class="status-section">
+                <h2>🎯 الحالة الحالية</h2>
+                <p><strong>تم إنجاز المنتج الأولي القابل للتطبيق (MVP) بنجاح</strong></p>
+                <p>الميزات الأساسية: الكورسات، المسائل، التحفيز، وأدوات الإنتاجية</p>
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <p>نسبة الإنجاز: 75%</p>
+            </div>
+
+            <div class="roadmap-section">
+                <div class="section-header">
+                    <h2><span class="icon">🔧</span>المسار الأول: التعميق والتحسين</h2>
+                    <p>تحسين الميزات الحالية لجعلها أكثر قوة وكفاءة</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>1. تحسين نظام الإشعارات (باستخدام Celery)</h3>
+                    <div class="problem">
+                        <strong>المشكلة الحالية:</strong> إرسال الإشعارات يتم بشكل متزامن، مما قد يبطئ استجابة الموقع عند إرسال عدد كبير من الإشعارات.
+                    </div>
+                    
+                    <div class="action-plan">
+                        <h4>خطة العمل:</h4>
+                        
+                        <div class="step">
+                            <h5>الإعداد:</h5>
+                            <ul>
+                                <li>تثبيت Celery: <span class="code">pip install celery</span></li>
+                                <li>تثبيت Redis: <span class="code">pip install redis</span></li>
+                                <li>إضافة إعدادات Celery و Redis إلى settings.py</li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h5>إنشاء المهام:</h5>
+                            <ul>
+                                <li>إنشاء ملف tasks.py في تطبيق telegram_bot</li>
+                                <li>نقل منطق إرسال الرسالة (send_telegram_message) إلى مهمة Celery (@shared_task)</li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h5>تحديث الإشارات:</h5>
+                            <ul>
+                                <li>في courses/signals.py، استدعاء المهمة باستخدام .delay()</li>
+                                <li>مثال: <span class="code">send_telegram_notification_task.delay(chat_id, message)</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h5>تفضيلات المستخدم:</h5>
+                            <ul>
+                                <li>أضف نموذجًا جديدًا NotificationPreference</li>
+                                <li>السماح للمستخدم بتفعيل/إلغاء أنواع مختلفة من الإشعارات</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>2. إمكانية إعادة الاختبار (Quiz Retakes)</h3>
+                    <div class="problem">
+                        <strong>الهدف:</strong> السماح للطلاب بإعادة الاختبارات لتعزيز التعلم من الأخطاء.
+                    </div>
+                    
+                    <div class="action-plan">
+                        <h4>خطة العمل:</h4>
+                        
+                        <div class="step">
+                            <h5>تعديل النموذج:</h5>
+                            <ul>
+                                <li>في نموذج QuizSubmission، إزالة unique_together = ('student', 'quiz')</li>
+                                <li>إضافة حقل: <span class="code">attempt_number = models.PositiveIntegerField(default=1)</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h5>تعديل منطق الـ View:</h5>
+                            <ul>
+                                <li>في take_quiz_view، السماح بإنشاء تقديم جديد مع زيادة رقم المحاولة</li>
+                                <li>في course_detail_view، عرض أعلى درجة حصل عليها الطالب</li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h5>واجهة المستخدم:</h5>
+                            <ul>
+                                <li>في quiz_result.html، إضافة زر "إعادة الاختبار"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>3. تحسين تجربة المستخدم الشاملة (Overall UX Polish)</h3>
+                    <div class="problem">
+                        <strong>الهدف:</strong> رفع جودة الواجهة من "جيدة" إلى "ممتازة" عبر تحسينات دقيقة.
+                    </div>
+                    
+                    <div class="checklist">
+                        <h4>قائمة تحقق للتحسينات:</h4>
+                        <ul>
+                            <li>رسائل التأكيد: استخدام نظام رسائل Django (django.contrib.messages)</li>
+                            <li>مؤشرات التحميل: إضافة htmx-indicator إلى الأزرار التفاعلية</li>
+                            <li>تحسين "الحالات الفارغة": رسائل تشجيعية للمستخدمين الجدد</li>
+                            <li>إمكانية الوصول: مراجعة تباين الألوان وإمكانية الوصول عبر لوحة المفاتيح</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="roadmap-section">
+                <div class="section-header">
+                    <h2><span class="icon">🚀</span>المسار الثاني: التوسع بميزات جديدة</h2>
+                    <p>إضافة وحدات وظيفية جديدة تزيد من قيمة المنصة</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>1. واجهات للمعلم/المشرف (Instructor Dashboard)</h3>
+                    <div class="problem">
+                        <strong>الهدف:</strong> تمكين المعلمين والمشرفين من إدارة المحتوى ومتابعة الطلاب من الواجهة الأمامية.
+                    </div>
+                    
+                    <div class="action-plan">
+                        <h4>خطة العمل:</h4>
+                        
+                        <div class="step">
+                            <h5>إنشاء تطبيق جديد:</h5>
+                            <ul>
+                                <li><span class="code">python manage.py startapp instructors</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h5>بناء الـ Views:</h5>
+                            <ul>
+                                <li><span class="highlight">InstructorDashboardView:</span> ملخص للكورسات وآخر نشاطات الطلاب</li>
+                                <li><span class="highlight">CourseManagementView:</span> إدارة الكورسات والوحدات والدروس</li>
+                                <li><span class="highlight">StudentProgressView:</span> نسبة تقدم كل طالب</li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h5>الصلاحيات والبيانات:</h5>
+                            <ul>
+                                <li>استخدام UserPassesTestMixin أو PermissionRequiredMixin</li>
+                                <li>استخدام Chart.js لعرض البيانات بشكل مرئي</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>2. بناء نظام توصية بسيط (Recommendation System)</h3>
+                    <div class="problem">
+                        <strong>الهدف:</strong> توجيه الطلاب نحو المحتوى الذي قد يهمهم لزيادة التفاعل.
+                    </div>
+                    
+                    <div class="action-plan">
+                        <h4>خطة العمل (البدء ببساطة):</h4>
+                        
+                        <div class="step">
+                            <h5>إضافة نظام وسوم:</h5>
+                            <ul>
+                                <li>استخدام مكتبة django-taggit: <span class="code">pip install django-taggit</span></li>
+                                <li>إضافة حقل وسوم إلى نماذج Problem و Course</li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h5>إنشاء "خدمة توصية":</h5>
+                            <ul>
+                                <li>إنشاء ملف recommendations/services.py</li>
+                                <li>كتابة دالة recommend_problems(user) لتحديد الوسوم الأكثر شيوعًا</li>
+                                <li>إرجاع قائمة بمسائل أخرى بنفس الوسوم</li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h5>التكامل:</h5>
+                            <ul>
+                                <li>عرض هذه التوصيات في لوحة التحكم</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <h3>3. تطوير محرر الملاحظات (Word-like Editor)</h3>
+                    <div class="problem">
+                        <strong>الهدف:</strong> استبدال محرر Markdown بمحرر WYSIWYG أكثر سهولة للمستخدم العادي.
+                    </div>
+                    
+                    <div class="action-plan">
+                        <h4>خطة العمل:</h4>
+                        
+                        <div class="step">
+                            <h5>اختيار وتثبيت المكتبة:</h5>
+                            <ul>
+                                <li>django-ckeditor هي خيار ممتاز: <span class="code">pip install django-ckeditor</span></li>
+                                <li>إضافة 'ckeditor' إلى INSTALLED_APPS</li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h5>تعديل النموذج:</h5>
+                            <ul>
+                                <li>في dashboard/models.py، تغيير حقل content من models.TextField إلى RichTextField</li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h5>تحديث القالب:</h5>
+                            <ul>
+                                <li>في note_form.html، عرض المحرر الغني تلقائيًا</li>
+                                <li>في dashboard.html، استخدام فلتر |safe بدلاً من |markdownify</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="roadmap-section">
+                <div class="section-header">
+                    <h2><span class="icon">⚙️</span>المسار الثالث: التحسينات التقنية والهيكلية</h2>
+                    <p>تجهيز المشروع للنمو المستقبلي والوصول إلى جمهور عالمي</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>1. دعم تعدد اللغات (Internationalization - i18n)</h3>
+                    <div class="problem">
+                        <strong>الهدف:</strong> جعل المنصة قابلة للترجمة إلى لغات أخرى (مثل الإنجليزية).
+                    </div>
+                    
+                    <div class="action-plan">
+                        <h4>خطة العمل:</h4>
+                        
+                        <div class="step">
+                            <h5>الإعداد:</h5>
+                            <ul>
+                                <li>في settings.py، تعريف LANGUAGES و LOCALE_PATHS</li>
+                                <li>إضافة django.middleware.locale.LocaleMiddleware إلى MIDDLEWARE</li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h5>تغليف النصوص:</h5>
+                            <ul>
+                                <li>في القوالب: <span class="code">{% translate "النص المراد ترجمته" %}</span></li>
+                                <li>في ملفات Python: <span class="code">from django.utils.translation import gettext_lazy as _</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h5>إنشاء ملفات الترجمة:</h5>
+                            <ul>
+                                <li>تشغيل الأمر: <span class="code">python manage.py makemessages -l en</span></li>
+                                <li>ترجمة النصوص في ملفات .po</li>
+                                <li>تجميع الرسائل: <span class="code">python manage.py compilemessages</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="step">
+                            <h5>واجهة المستخدم:</h5>
+                            <ul>
+                                <li>إضافة مبدل لغة في رأس أو تذييل الصفحة</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>🎉 عمل رائع ومبروك على الوصول إلى هذه المرحلة المتقدمة!</strong></p>
+            <p>هذه الخارطة تمنحك رؤية واضحة ومنظمة لما يمكنك العمل عليه لاحقًا</p>
+            <p>يمكنك اختيار أي عنصر من هذه القائمة والبدء في تنفيذه كجزء من خطة أكبر لتطوير المنصة</p>
+        </div>
+    </div>
+
+    <script>
+        // إضافة إمكانية طباعة الوثيقة
+        document.addEventListener('DOMContentLoaded', function() {
+            // إضافة زر طباعة
+            const printBtn = document.createElement('button');
+            printBtn.innerHTML = '🖨️ طباعة/حفظ كـ PDF';
+            printBtn.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                background: #4f46e5;
+                color: white;
+                border: none;
+                padding: 12px 20px;
+                border-radius: 25px;
+                cursor: pointer;
+                font-family: 'Noto Sans Arabic', Arial, sans-serif;
+                font-size: 14px;
+                box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+                z-index: 1000;
+                transition: all 0.3s ease;
+            `;
+            
+            printBtn.onmouseover = function() {
+                this.style.background = '#3730a3';
+                this.style.transform = 'translateY(-2px)';
+            };
+            
+            printBtn.onmouseout = function() {
+                this.style.background = '#4f46e5';
+                this.style.transform = 'translateY(0)';
+            };
+            
+            printBtn.onclick = function() {
+                window.print();
+            };
+            
+            document.body.appendChild(printBtn);
+        });
+    </script>
+</body>
+</html>
